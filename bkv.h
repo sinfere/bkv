@@ -6,12 +6,19 @@
 #if !defined(BKV_H)
 #define BKV_H
 
+#define BKV_MAX_STRING_KEY_LEN 32
+
 void dump_buf(char* name, u_int8_t* buf, int buf_size);
 void dump_bkv(u_int8_t* buf, int buf_size);
 
 int bkv_append(u_int8_t* buf, int buf_size, int pos, u_int8_t* key, int key_len, int is_string_key, u_int8_t* value, int value_len);
 int bkv_append_by_string_key(u_int8_t* buf, int buf_size, int pos, char* key, u_int8_t* value, int value_len);
 int bkv_append_by_number_key(u_int8_t* buf, int buf_size, int pos, u_int64_t key, u_int8_t* value, int value_len);
+
+int bkv_contains_string_key(u_int8_t* buf, int buf_size, char* key);
+int bkv_contains_number_key(u_int8_t* buf, int buf_size, u_int64_t key);
+int bkv_get_value_by_string_key(u_int8_t* buf, int buf_size, char* key, int* value_pos_begin, int* value_pos_end);
+int bkv_get_value_by_number_key(u_int8_t* buf, int buf_size, u_int64_t key, int* value_pos_begin, int* value_pos_end);
 
 int bkv_get_count(u_int8_t* buf, int buf_size);
 int bkv_get_key_by_index(u_int8_t* buf, int buf_size, int index, int* is_string_key, char* string_key, int max_string_len, u_int64_t* number_key);

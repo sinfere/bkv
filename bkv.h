@@ -11,9 +11,9 @@
 void dump_buf(char* name, u_int8_t* buf, int buf_size);
 void dump_bkv(u_int8_t* buf, int buf_size);
 
-int bkv_append(u_int8_t* buf, int buf_size, int pos, u_int8_t* key, int key_len, int is_string_key, u_int8_t* value, int value_len);
-int bkv_append_by_string_key(u_int8_t* buf, int buf_size, int pos, char* key, u_int8_t* value, int value_len);
-int bkv_append_by_number_key(u_int8_t* buf, int buf_size, int pos, u_int64_t key, u_int8_t* value, int value_len);
+int bkv_append(u_int8_t* buf, int buf_size, u_int8_t* key, int key_len, int is_string_key, u_int8_t* value, int value_len);
+int bkv_append_by_string_key(u_int8_t* buf, int buf_size, char* key, u_int8_t* value, int value_len);
+int bkv_append_by_number_key(u_int8_t* buf, int buf_size, u_int64_t key, u_int8_t* value, int value_len);
 
 int bkv_contains_string_key(u_int8_t* buf, int buf_size, char* key);
 int bkv_contains_number_key(u_int8_t* buf, int buf_size, u_int64_t key);

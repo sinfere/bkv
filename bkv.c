@@ -113,7 +113,7 @@ int get_length_encoded_size(u_int64_t length) {
     return i;
 }
 
-int encode_length(u_int64_t length, u_int8_t* buf, int pos) {
+int encode_length(u_int64_t length, u_int8_t* buf) {
     u_int8_t nb[16]; 
     int i = 0;
     while (length > 0) {
@@ -126,10 +126,10 @@ int encode_length(u_int64_t length, u_int8_t* buf, int pos) {
     nb[i - 1] &= 0x7F;
 
     for (int j = 0; j < i; j++) {
-        *(buf + pos + j) = nb[j];
+        *(buf + j) = nb[j];
     }    
 
-    return pos + i;
+    return i;
 }
 
 void decode_length(u_int8_t* buf, size_t buf_size, int* result_code, u_int64_t* result_length, int* result_length_byte_size) {
@@ -173,28 +173,28 @@ void decode_length(u_int8_t* buf, size_t buf_size, int* result_code, u_int64_t* 
 
 // encode related functions
 
-int bkv_append_by_string_key(u_int8_t* buf, int buf_size, int pos, char* key, u_int8_t* value, int value_len) {
+int bkv_append_by_string_key(u_int8_t* buf, int buf_size, char* key, u_int8_t* value, int value_len) {
     int key_len = strlen(key);
     int is_string_key = 1;
-    return bkv_append(buf, buf_size, pos, (u_int8_t*)key, key_len, is_string_key, value, value_len);
+    return bkv_append(buf, buf_size, (u_int8_t*)key, key_len, is_string_key, value, value_len);
 }
 
-int bkv_append_by_number_key(u_int8_t* buf, int buf_size, int pos, u_int64_t key, u_int8_t* value, int value_len) {
+int bkv_append_by_number_key(u_int8_t* buf, int buf_size, u_int64_t key, u_int8_t* value, int value_len) {
     u_int8_t key_buf[16];
     int key_len = encode_number(key, key_buf, 0);
-    return bkv_append(buf, buf_size, pos, key_buf, key_len, 0, value, value_len);
+    return bkv_append(buf, buf_size, key_buf, key_len, 0, value, value_len);
 }
 
-int bkv_append(u_int8_t* buf, int buf_size, int pos, u_int8_t* key, int key_len, int is_string_key, u_int8_t* value, int value_len) {
+int bkv_append(u_int8_t* buf, int buf_size, u_int8_t* key, int key_len, int is_string_key, u_int8_t* value, int value_len) {
     u_int64_t payload_length = key_len + 1 + value_len;
     int length_encoded_size = get_length_encoded_size(payload_length);
-    if (pos + length_encoded_size + payload_length >= buf_size) {
+    if (length_encoded_size + payload_length >= buf_size) {
         // length not enough
         return -1;
     }
 
     // append len
-    int p = encode_length(payload_length, buf, pos);
+    int p = encode_length(payload_length, buf);
 
     // append key length byte
     u_int8_t key_lenght_byte = key_len & 0x7F;

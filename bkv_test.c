@@ -7,25 +7,25 @@
 
 void test_base() {
     char *string = "Hello, world";
-    u_int8_t array[3] = {1, 2, 3};
-    u_int8_t* p = array;
+    uint8_t array[3] = {1, 2, 3};
+    uint8_t* p = array;
     
     dump_buf("def", p, 3);
 }
 
 void test_encode_decode() {
     char *string = "Hello, world";
-    u_int8_t data[60];
+    uint8_t data[60];
     memset(data, 0, 60);
 
-    u_int8_t key[1] = {2};
-    u_int8_t value[3] = {3, 4, 5};
+    uint8_t key[1] = {2};
+    uint8_t value[3] = {3, 4, 5};
     
     int offset = 0;
-    offset += bkv_append(data + offset, 60 - offset, key, 1, 0, (u_int8_t* )string, strlen(string));
+    offset += bkv_append(data + offset, 60 - offset, key, 1, 0, (uint8_t* )string, strlen(string));
     offset += bkv_append(data + offset, 60 - offset, key, 1, 0, value, 3);
 
-    u_int8_t value_string[3] = {0x30, 0x31, 0x32};
+    uint8_t value_string[3] = {0x30, 0x31, 0x32};
     offset += bkv_append_by_string_key(data + offset, 60 - offset, "dd", value_string, 3);
 
     // robust check

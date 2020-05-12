@@ -1,6 +1,6 @@
 #include "bkv.h"
 
-void dump_buf(char* name, u_int8_t* buf, int buf_size) {
+void dump_buf(char* name, uint8_t* buf, int buf_size) {
     int i, j;
 
     printf("%-5s[%d]: ", name, buf_size);
@@ -10,7 +10,7 @@ void dump_buf(char* name, u_int8_t* buf, int buf_size) {
 
     // check printable string
     if (buf_size != 0) {
-        u_int8_t first_byte = *(buf);
+        uint8_t first_byte = *(buf);
         if (0x20 <= first_byte && first_byte <= 0x7E) {
             printf(" (s: ");
             for (j = 0; j < buf_size; j++) {
@@ -23,7 +23,7 @@ void dump_buf(char* name, u_int8_t* buf, int buf_size) {
     printf("\n");
 }
 
-void dump_bkv(u_int8_t* buf, int buf_size) {
+void dump_bkv(uint8_t* buf, int buf_size) {
     int count = bkv_get_count(buf, buf_size);
     printf("%d kv for ", count);
     dump_buf("dump", buf, buf_size);
@@ -57,17 +57,17 @@ void dump_bkv(u_int8_t* buf, int buf_size) {
     printf("\n");
 }
 
-void reverse(u_int8_t* bs, size_t size) {
+void reverse(uint8_t* bs, size_t size) {
     int i, j;
     for (i = 0, j = size - 1; i < j; i++, j--) {
-        u_int8_t tmp = *(bs + i);
+        uint8_t tmp = *(bs + i);
         *(bs + i) = *(bs + j);
         *(bs + j) = tmp;
     }
 }
 
-int encode_number(u_int64_t number, u_int8_t* buf, int pos) {
-    u_int8_t nb[16]; 
+int encode_number(u_int64_t number, uint8_t* buf, int pos) {
+    uint8_t nb[16]; 
     if (number == 0) {
         nb[0] = 0;
         return pos;
@@ -89,7 +89,7 @@ int encode_number(u_int64_t number, u_int8_t* buf, int pos) {
     return pos + i;
 }
 
-u_int64_t decode_number(u_int8_t* buf, size_t buf_size) {
+u_int64_t decode_number(uint8_t* buf, size_t buf_size) {
     int i;
 
     if (buf_size > 8) {
@@ -113,8 +113,8 @@ int get_length_encoded_size(u_int64_t length) {
     return i;
 }
 
-int encode_length(u_int64_t length, u_int8_t* buf) {
-    u_int8_t nb[16]; 
+int encode_length(u_int64_t length, uint8_t* buf) {
+    uint8_t nb[16]; 
     int i = 0;
     while (length > 0) {
         nb[i] = (length & 0x7F) | 0x80;
@@ -132,9 +132,9 @@ int encode_length(u_int64_t length, u_int8_t* buf) {
     return i;
 }
 
-void decode_length(u_int8_t* buf, size_t buf_size, int* result_code, u_int64_t* result_length, int* result_length_byte_size) {
+void decode_length(uint8_t* buf, size_t buf_size, int* result_code, u_int64_t* result_length, int* result_length_byte_size) {
     // single byte
-    u_int8_t first_byte = *buf;
+    uint8_t first_byte = *buf;
     if ((first_byte & 0x80) == 0) {
         *result_code = 0;
         *result_length = first_byte;
@@ -173,19 +173,19 @@ void decode_length(u_int8_t* buf, size_t buf_size, int* result_code, u_int64_t* 
 
 // encode related functions
 
-int bkv_append_by_string_key(u_int8_t* buf, int buf_size, char* key, u_int8_t* value, int value_len) {
+int bkv_append_by_string_key(uint8_t* buf, int buf_size, char* key, uint8_t* value, int value_len) {
     int key_len = strlen(key);
     int is_string_key = 1;
-    return bkv_append(buf, buf_size, (u_int8_t*)key, key_len, is_string_key, value, value_len);
+    return bkv_append(buf, buf_size, (uint8_t*)key, key_len, is_string_key, value, value_len);
 }
 
-int bkv_append_by_number_key(u_int8_t* buf, int buf_size, u_int64_t key, u_int8_t* value, int value_len) {
-    u_int8_t key_buf[16];
+int bkv_append_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, uint8_t* value, int value_len) {
+    uint8_t key_buf[16];
     int key_len = encode_number(key, key_buf, 0);
     return bkv_append(buf, buf_size, key_buf, key_len, 0, value, value_len);
 }
 
-int bkv_append(u_int8_t* buf, int buf_size, u_int8_t* key, int key_len, int is_string_key, u_int8_t* value, int value_len) {
+int bkv_append(uint8_t* buf, int buf_size, uint8_t* key, int key_len, int is_string_key, uint8_t* value, int value_len) {
     u_int64_t payload_length = key_len + 1 + value_len;
     int length_encoded_size = get_length_encoded_size(payload_length);
     if (length_encoded_size + payload_length >= buf_size) {
@@ -197,7 +197,7 @@ int bkv_append(u_int8_t* buf, int buf_size, u_int8_t* key, int key_len, int is_s
     int p = encode_length(payload_length, buf);
 
     // append key length byte
-    u_int8_t key_lenght_byte = key_len & 0x7F;
+    uint8_t key_lenght_byte = key_len & 0x7F;
     if (is_string_key != 0) {
         key_lenght_byte |= 0x80;
     }
@@ -223,9 +223,9 @@ int bkv_append(u_int8_t* buf, int buf_size, u_int8_t* key, int key_len, int is_s
 
 // decode related functions
 
-int bkv_get_count(u_int8_t* buf, int buf_size) {
+int bkv_get_count(uint8_t* buf, int buf_size) {
     int count = 0;
-    u_int8_t* p = buf;
+    uint8_t* p = buf;
     int remaining_size = buf_size;
     int pos = 0;
 
@@ -251,9 +251,9 @@ int bkv_get_count(u_int8_t* buf, int buf_size) {
     }
 }
 
-int bkv_get_kv_by_index(u_int8_t* buf, int buf_size, int index, int* pos_begin, int* pos_payload_begin, int* pos_end) {
+int bkv_get_kv_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin, int* pos_payload_begin, int* pos_end) {
     int count = 0;
-    u_int8_t* p = buf;
+    uint8_t* p = buf;
     int remaining_size = buf_size;
     int pos = 0;
 
@@ -289,13 +289,13 @@ int bkv_get_kv_by_index(u_int8_t* buf, int buf_size, int index, int* pos_begin, 
     }
 }
 
-int bkv_get_key_from_kv_payload(u_int8_t* buf, int buf_size, int* is_string_key, char* string_key, int max_string_len, u_int64_t* number_key) {
+int bkv_get_key_from_kv_payload(uint8_t* buf, int buf_size, int* is_string_key, char* string_key, int max_string_len, u_int64_t* number_key) {
     if (buf_size <= 0) {
         // invalid buf
         return -1;
     }
 
-    u_int8_t first_byte = *buf;
+    uint8_t first_byte = *buf;
     *is_string_key = 0;
     if ((first_byte & 0x80) != 0) {
         *is_string_key = 1;
@@ -324,13 +324,13 @@ int bkv_get_key_from_kv_payload(u_int8_t* buf, int buf_size, int* is_string_key,
     return 0;
 }
 
-int bkv_get_value_from_kv_payload(u_int8_t* buf, int buf_size, int* pos_begin) {
+int bkv_get_value_from_kv_payload(uint8_t* buf, int buf_size, int* pos_begin) {
     if (buf_size <= 0) {
         // invalid buf
         return -1;
     }
 
-    u_int8_t first_byte = *buf;
+    uint8_t first_byte = *buf;
     int key_len = first_byte & 0x7F;
 
     if (key_len + 1 > buf_size) {
@@ -343,7 +343,7 @@ int bkv_get_value_from_kv_payload(u_int8_t* buf, int buf_size, int* pos_begin) {
     return 0;
 }
 
-int bkv_get_key_by_index(u_int8_t* buf, int buf_size, int index, int* is_string_key, char* string_key, int max_string_len, u_int64_t* number_key) {
+int bkv_get_key_by_index(uint8_t* buf, int buf_size, int index, int* is_string_key, char* string_key, int max_string_len, u_int64_t* number_key) {
     int kv_pos_begin = 0;
     int kv_pos_payload_begin = 0;
     int kv_pos_end = 0;
@@ -370,7 +370,7 @@ int bkv_get_key_by_index(u_int8_t* buf, int buf_size, int index, int* is_string_
     return 0;
 }
 
-int bkv_get_value_by_index(u_int8_t* buf, int buf_size, int index, int* pos_begin, int* pos_end) {
+int bkv_get_value_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin, int* pos_end) {
     int kv_pos_begin = 0;
     int kv_pos_payload_begin = 0;
     int kv_pos_end = 0;
@@ -398,7 +398,7 @@ int bkv_get_value_by_index(u_int8_t* buf, int buf_size, int index, int* pos_begi
     return 0;
 }
 
-int bkv_contains_string_key(u_int8_t* buf, int buf_size, char* key) {
+int bkv_contains_string_key(uint8_t* buf, int buf_size, char* key) {
     int count = bkv_get_count(buf, buf_size);
     for (int i = 0; i < count; i++) {
         int is_string_key = 0;
@@ -418,7 +418,7 @@ int bkv_contains_string_key(u_int8_t* buf, int buf_size, char* key) {
     return 0;
 }
 
-int bkv_contains_number_key(u_int8_t* buf, int buf_size, u_int64_t key) {
+int bkv_contains_number_key(uint8_t* buf, int buf_size, u_int64_t key) {
     int count = bkv_get_count(buf, buf_size);
     for (int i = 0; i < count; i++) {
         int is_string_key = 0;
@@ -438,7 +438,7 @@ int bkv_contains_number_key(u_int8_t* buf, int buf_size, u_int64_t key) {
     return 0;
 }
 
-int bkv_get_value_by_string_key(u_int8_t* buf, int buf_size, char* key, int* value_pos_begin, int* value_pos_end) {
+int bkv_get_value_by_string_key(uint8_t* buf, int buf_size, char* key, int* value_pos_begin, int* value_pos_end) {
     int count = bkv_get_count(buf, buf_size);
     for (int i = 0; i < count; i++) {
         int is_string_key = 0;
@@ -461,7 +461,7 @@ int bkv_get_value_by_string_key(u_int8_t* buf, int buf_size, char* key, int* val
     return -1;
 }
 
-int bkv_get_value_by_number_key(u_int8_t* buf, int buf_size, u_int64_t key, int* value_pos_begin, int* value_pos_end) {
+int bkv_get_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, int* value_pos_begin, int* value_pos_end) {
     int count = bkv_get_count(buf, buf_size);
     for (int i = 0; i < count; i++) {
         int is_string_key = 0;

@@ -50,13 +50,13 @@ if (apend_offset == -1) {
 } else {
     offset += apend_offset;
 }
-// dump_buf("encode", data, pos);
+// bkv_dump_buf("encode", data, pos);
 
 int count = bkv_get_count(data, offset);
 LOGI("bkv count: %d", count);
 
-// see dump_bkv for iteration
-dump_bkv(data, offset);
+// see bkv_dump for iteration
+bkv_dump(data, offset);
 
 int contains_number_key = bkv_contains_number_key(data, offset, 2);
 LOGI("contains_number_key: %s", contains_number_key ? "true" : "false");
@@ -65,7 +65,7 @@ int value_pos_end = 0;
 int result_code = bkv_get_value_by_number_key(data, offset, 2, &value_pos_begin, &value_pos_end);
 if (result_code == 0) {
     LOGI("bkv_get_value_by_number_key result: %d", result_code);
-    dump_buf("value", data + value_pos_begin, value_pos_end - value_pos_begin);
+    bkv_dump_buf("value", data + value_pos_begin, value_pos_end - value_pos_begin);
 }
 
 int contains_string_key = bkv_contains_string_key(data, offset, "dd");
@@ -73,7 +73,7 @@ LOGI("contains_string_key: %s", contains_string_key ? "true" : "false");
 result_code = bkv_get_value_by_string_key(data, offset, "dd", &value_pos_begin, &value_pos_end);
 if (result_code == 0) {
     LOGI("bkv_get_value_by_string_key result: %d", result_code);
-    dump_buf("value", data + value_pos_begin, value_pos_end - value_pos_begin);
+    bkv_dump_buf("value", data + value_pos_begin, value_pos_end - value_pos_begin);
 }   
 ```
 

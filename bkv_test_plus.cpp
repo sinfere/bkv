@@ -1,9 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <time.h>
 
+extern "C" {
 #include "bkv.h"
+}
+
+using namespace std;
 
 void test_base() {
     char *string = "Hello, world";
@@ -11,6 +15,27 @@ void test_base() {
     uint8_t* p = array;
 
     bkv_dump_buf("def", p, 3);
+}
+
+string getStringValue(uint8_t* buf, int len, const string& key) {
+    int value_pos_begin = 0;
+    int value_pos_end = 0;
+    int result = bkv_get_value_by_string_key(buf, len, const_cast<char *>(key.c_str()), &value_pos_begin, &value_pos_end);
+    if (result != 0) {
+        return "";
+    }
+
+    return string((char *)(buf + value_pos_begin), size_t(value_pos_end - value_pos_begin));
+}
+
+uint64_t getNumberValue(uint8_t* buf, int len, const string& key) {
+    uint64_t num = 0;
+    int result = bkv_get_number_value_by_string_key(buf, len, const_cast<char *>(key.c_str()), &num);
+    if (result != 0) {
+        return 0;
+    }
+
+    return num;
 }
 
 void test_encode_decode() {
@@ -21,7 +46,7 @@ void test_encode_decode() {
 
     uint8_t key[1] = {2};
     uint8_t value[3] = {3, 4, 5};
-    
+
     int offset = 0;
     offset += bkv_append(data + offset, size - offset, key, 1, 0, (uint8_t* )string, strlen(string));
     offset += bkv_append(data + offset, size - offset, key, 1, 0, value, 3);
@@ -66,12 +91,15 @@ void test_encode_decode() {
         bkv_dump_buf("value", data + value_pos_begin, value_pos_end - value_pos_begin);
     }
 
-    uint64_t get_num = 0;
-    result_code = bkv_get_number_value_by_string_key(data, offset, "num", &get_num);
-    if (result_code == 0) {
-        LOGI("bkv_get_number_value_by_string_key result: %d", result_code);
-        LOGI("num=%lld", get_num);
-    }
+    std::string dd = getStringValue(data, offset, "dd");
+    LOGI("getStringValue: dd -> %s", dd.c_str());
+
+    uint64_t num = getNumberValue(data, offset, "num");
+    LOGI("getStringValue: num -> %lld", num);
+}
+
+void test_encode_batch() {
+
 }
 
 int main() {

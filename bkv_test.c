@@ -23,13 +23,13 @@ void test_encode_decode() {
     uint8_t value[3] = {3, 4, 5};
     
     int offset = 0;
+    // add kv: 2 -> Hello, world
     offset += bkv_append(data + offset, size - offset, key, 1, 0, (uint8_t* )string, strlen(string));
+    // add kv: 2 -> 0x030405
     offset += bkv_append(data + offset, size - offset, key, 1, 0, value, 3);
-
-    uint8_t number[8];
-    int number_len = bkv_encode_number(6396, number, 0);
-    offset += bkv_append_by_string_key(data + offset, size - offset, "num", number, number_len);
-
+    // add kv: num -> 6396
+    offset += bkv_append_number_value_by_string_key(data + offset, size - offset, "num", 6396);
+    // add kv: dd -> 0x303132
     uint8_t value_string[3] = {0x30, 0x31, 0x32};
     offset += bkv_append_by_string_key(data + offset, size - offset, "dd", value_string, 3);
 

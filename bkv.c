@@ -185,6 +185,26 @@ int bkv_append_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, uint8_t*
     return bkv_append(buf, buf_size, key_buf, key_len, 0, value, value_len);
 }
 
+int bkv_append_number_value_by_string_key(uint8_t* buf, int buf_size, char* key, uint64_t value) {
+    int key_len = (int) strlen(key);
+    int is_string_key = 1;
+
+    uint8_t value_buf[16];
+    int value_len = bkv_encode_number(value, value_buf, 0);
+
+    return bkv_append(buf, buf_size, (uint8_t*)key, key_len, is_string_key, value_buf, value_len);
+}
+
+int bkv_append_number_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, uint64_t value) {
+    uint8_t key_buf[16];
+    int key_len = bkv_encode_number(key, key_buf, 0);
+
+    uint8_t value_buf[16];
+    int value_len = bkv_encode_number(value, value_buf, 0);
+
+    return bkv_append(buf, buf_size, key_buf, key_len, 0, value_buf, value_len);
+}
+
 int bkv_append(uint8_t* buf, int buf_size, uint8_t* key, int key_len, int is_string_key, uint8_t* value, int value_len) {
     u_int64_t payload_length = (u_int64_t) (key_len + 1 + value_len);
     int length_encoded_size = get_length_encoded_size(payload_length);

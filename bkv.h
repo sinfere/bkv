@@ -17,25 +17,12 @@
 #define BKV_RESULT_CODE_SUCCESS 0
 #define BKV_RESULT_CODE_FAIL -1
 
-// 非法buf
 #define BKV_RESULT_CODE_INVALID_BUF -1
-
-// KEY长度超出
 #define BKV_RESULT_CODE_KEY_LEN_EXCEED_STRING_LEN -2
-
-// KEY长度超出
 #define BKV_RESULT_CODE_KEY_LEN_EXCEED_BUF_LEN -3
-
-// 获取KV失败
 #define BKV_RESULT_CODE_GET_KV_FAIL -4
-
-// 获取KEY失败
 #define BKV_RESULT_CODE_GET_KEY_FAIL -5
-
-// 获取VALUE失败
 #define BKV_RESULT_CODE_GET_VALUE_FAIL -6
-
-// KV格式错误
 #define BKV_RESULT_CODE_KV_INVALID -7
 
 
@@ -56,6 +43,8 @@ u_int64_t bkv_decode_number(uint8_t* buf, size_t buf_size);
 int bkv_append(uint8_t* buf, int buf_size, uint8_t* key, int key_len, int is_string_key, uint8_t* value, int value_len);
 int bkv_append_by_string_key(uint8_t* buf, int buf_size, char* key, uint8_t* value, int value_len);
 int bkv_append_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, uint8_t* value, int value_len);
+int bkv_append_number_value_by_string_key(uint8_t* buf, int buf_size, char* key, uint64_t value);
+int bkv_append_number_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, uint64_t value);
 
 bkv_bool bkv_contains_string_key(uint8_t* buf, int buf_size, char* key);
 bkv_bool bkv_contains_number_key(uint8_t* buf, int buf_size, u_int64_t key);

@@ -205,6 +205,25 @@ int bkv_append_number_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t 
     return bkv_append(buf, buf_size, key_buf, key_len, 0, value_buf, value_len);
 }
 
+int bkv_append_string_value_by_string_key(uint8_t* buf, int buf_size, char* key, char* value) {
+    int key_len = (int) strlen(key);
+
+    int value_len = (int) strlen(value);
+
+    return bkv_append(buf, buf_size, key, key_len, 1, value, value_len);
+}
+
+int bkv_append_string_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, char* value) {
+    uint8_t key_buf[16];
+    int key_len = bkv_encode_number(key, key_buf, 0);
+
+    int value_len = (int) strlen(value);
+
+    return bkv_append(buf, buf_size, key_buf, key_len, 0, value, value_len);
+}
+
+
+
 int bkv_append(uint8_t* buf, int buf_size, uint8_t* key, int key_len, int is_string_key, uint8_t* value, int value_len) {
     u_int64_t payload_length = (u_int64_t) (key_len + 1 + value_len);
     int length_encoded_size = get_length_encoded_size(payload_length);
@@ -534,6 +553,50 @@ int bkv_get_number_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t key
     }
 
     *value = bkv_decode_number(buf + value_pos_begin, value_pos_end - value_pos_begin);
+
+    return BKV_RESULT_CODE_SUCCESS;
+}
+
+int bkv_get_string_value_by_string_key(uint8_t* buf, int buf_size, char* key, char* value) {
+    if (bkv_contains_string_key(buf, buf_size, key) == BKV_FALSE) {
+        return BKV_RESULT_CODE_GET_KEY_FAIL;
+    }
+
+    int value_pos_begin = 0;
+    int value_pos_end = 0;
+    int result_code = bkv_get_value_by_string_key(buf, buf_size, key, &value_pos_begin, &value_pos_end);
+    if (result_code != 0) {
+        return BKV_RESULT_CODE_GET_VALUE_FAIL;
+    }
+
+    int value_len = value_pos_end - value_pos_begin;
+    char value_buf[value_len + 1];
+    memcpy(value_buf, buf + value_pos_begin, value_pos_end - value_pos_begin);
+    value_buf[value_len] = 0;
+
+    strcpy(value, value_buf);
+
+    return BKV_RESULT_CODE_SUCCESS;
+}
+
+int bkv_get_string_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, char* value) {
+    if (bkv_contains_number_key(buf, buf_size, key) == BKV_FALSE) {
+        return BKV_RESULT_CODE_GET_KEY_FAIL;
+    }
+
+    int value_pos_begin = 0;
+    int value_pos_end = 0;
+    int result_code = bkv_get_value_by_number_key(buf, buf_size, key, &value_pos_begin, &value_pos_end);
+    if (result_code != 0) {
+        return BKV_RESULT_CODE_GET_VALUE_FAIL;
+    }
+
+    int value_len = value_pos_end - value_pos_begin;
+    char value_buf[value_len + 1];
+    memcpy(value_buf, buf + value_pos_begin, value_pos_end - value_pos_begin);
+    value_buf[value_len] = 0;
+
+    strcpy(value, value_buf);
 
     return BKV_RESULT_CODE_SUCCESS;
 }

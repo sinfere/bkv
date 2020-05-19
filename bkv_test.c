@@ -11,6 +11,9 @@ void test_base() {
     uint8_t* p = array;
 
     bkv_dump_buf("def", p, 3);
+
+    uint16_t value = 1440;
+    uint8_t value_buf[2] = { (value & 0xFF00) >> 8, value & 0xFF };
 }
 
 void test_encode_decode() {
@@ -32,6 +35,14 @@ void test_encode_decode() {
     // add kv: dd -> 0x303132
     uint8_t value_string[3] = {0x30, 0x31, 0x32};
     offset += bkv_append_by_string_key(data + offset, size - offset, "dd", value_string, 3);
+    // add kv: 3 -> num(3)
+    offset += bkv_append_number_value_by_number_key(data + offset, size - offset, 3, 3);
+    // add kv: n3 -> num(3)
+    offset += bkv_append_number_value_by_string_key(data + offset, size - offset, "n3", 3);
+    // add kv: 6 -> '33'
+    offset += bkv_append_string_value_by_number_key(data + offset, size - offset, 6, "33");
+    // add kv: n6 -> '33'
+    offset += bkv_append_string_value_by_string_key(data + offset, size - offset, "n6", "33");
 
     // robust check
     int append_offset = bkv_append_by_number_key(data + offset, size - offset, 99, value, 3);
@@ -71,6 +82,20 @@ void test_encode_decode() {
     if (result_code == 0) {
         LOGI("bkv_get_number_value_by_string_key result: %d", result_code);
         LOGI("num=%lld", get_num);
+    }
+
+
+    char n6[1024];
+    result_code = bkv_get_string_value_by_string_key(data, offset, "n6", n6);
+    if (result_code == 0) {
+        LOGI("bkv_get_string_value_by_string_key result: %d", result_code);
+        LOGI("value=%s, strlen=%d", n6, strlen(n6));
+    }
+
+    result_code = bkv_get_string_value_by_number_key(data, offset, 6, n6);
+    if (result_code == 0) {
+        LOGI("bkv_get_string_value_by_number_key result: %d", result_code);
+        LOGI("value=%s, strlen=%d", n6, strlen(n6));
     }
 }
 

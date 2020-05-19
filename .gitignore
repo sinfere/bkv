@@ -8,3 +8,6 @@ test
 mem_test.dSYM/
 mem_test
 sync.sh
+
+build
+.vscode

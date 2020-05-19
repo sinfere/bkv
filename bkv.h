@@ -45,6 +45,8 @@ int bkv_append_by_string_key(uint8_t* buf, int buf_size, char* key, uint8_t* val
 int bkv_append_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, uint8_t* value, int value_len);
 int bkv_append_number_value_by_string_key(uint8_t* buf, int buf_size, char* key, uint64_t value);
 int bkv_append_number_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, uint64_t value);
+int bkv_append_string_value_by_string_key(uint8_t* buf, int buf_size, char* key, char* value);
+int bkv_append_string_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, char* value);
 
 bkv_bool bkv_contains_string_key(uint8_t* buf, int buf_size, char* key);
 bkv_bool bkv_contains_number_key(uint8_t* buf, int buf_size, u_int64_t key);
@@ -53,6 +55,8 @@ int bkv_get_value_by_string_key(uint8_t* buf, int buf_size, char* key, int* valu
 int bkv_get_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, int* value_pos_begin, int* value_pos_end);
 int bkv_get_number_value_by_string_key(uint8_t* buf, int buf_size, char* key, uint64_t* value);
 int bkv_get_number_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, uint64_t* value);
+int bkv_get_string_value_by_string_key(uint8_t* buf, int buf_size, char* key, char* value);
+int bkv_get_string_value_by_number_key(uint8_t* buf, int buf_size, u_int64_t key, char* value);
 
 int bkv_get_count(uint8_t* buf, int buf_size);
 int bkv_get_key_by_index(uint8_t* buf, int buf_size, int index, int* is_string_key, char* string_key, int max_string_len, u_int64_t* number_key);

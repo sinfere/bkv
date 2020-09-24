@@ -38,7 +38,7 @@ void test_encode_decode() {
     // add kv: 3 -> num(3)
     offset += bkv_append_number_value_by_number_key(data + offset, size - offset, 3, 3);
     // add kv: n3 -> num(3)
-    offset += bkv_append_number_value_by_string_key(data + offset, size - offset, "n3", 3);
+    offset += bkv_append_number_value_by_string_key(data + offset, size - offset, "n3", -1);
     // add kv: 6 -> '33'
     offset += bkv_append_string_value_by_number_key(data + offset, size - offset, 6, "33");
     // add kv: n6 -> '33'
@@ -79,6 +79,13 @@ void test_encode_decode() {
 
     uint64_t get_num = 0;
     result_code = bkv_get_number_value_by_string_key(data, offset, "num", &get_num);
+    if (result_code == 0) {
+        LOGI("bkv_get_number_value_by_string_key result: %d", result_code);
+        LOGI("num=%lld", (long long)get_num);
+    }
+
+    get_num = 0;
+    result_code = bkv_get_number_value_by_string_key(data, offset, "n3", &get_num);
     if (result_code == 0) {
         LOGI("bkv_get_number_value_by_string_key result: %d", result_code);
         LOGI("num=%lld", get_num);

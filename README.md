@@ -1,4 +1,4 @@
-# BKV
+# BKV / [中文介绍](README-cn.md)
 Binary key-value tuples protocol, c implementation, no malloc version for embedded device !!!
 
 ## 1 Protocol

@@ -21,7 +21,7 @@ For example, if length is small than 128, one byte is enough; if length is large
 `Key length` use 1 byte, the first bit stands for key type, 0 stands for number key, 1 stands for strings, thus max string `key length` is 128
 
 #### 1.3 Key
-Key is either string or number, BKV will use as less bytes to stands for number as possible, for example, if number is u_int64_t 3, it will be encoded to byte 0x03
+Key is either string or number, BKV will use as less bytes to stands for number as possible, for example, if number is uint64_t 3, it will be encoded to byte 0x03
 
 #### 1.4 Value
 Value is just raw bytes, there is no type info for value, the parsing work is left for application level according to key. when we define a key, we should know the responding value bytes layout

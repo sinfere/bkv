@@ -70,6 +70,7 @@ int bkv_encode_number(uint64_t number, uint8_t* buf, int pos) {
     uint8_t nb[16];
     if (number == 0) {
         nb[0] = 0;
+        buf[0] = 0;
         return pos + 1;
     }
 

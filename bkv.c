@@ -32,7 +32,7 @@ void bkv_dump(uint8_t* buf, int buf_size) {
         int is_string_key = 0;
         char string_key[33];
         uint64_t number_key = 0;
-        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &is_string_key, string_key, 32, &number_key);
+        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &is_string_key, string_key, BKV_MAX_STRING_KEY_LEN, &number_key);
         if (result_get_key != 0) {
             printf("get key[%d] fail: %d", i, result_get_key);
             break;
@@ -291,7 +291,7 @@ int bkv_get_count(uint8_t* buf, int buf_size) {
     }
 }
 
-int bkv_get_kv_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin, int* pos_payload_begin, int* pos_end) {
+int bkv_get_kv_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin, int* pos_end) {
     int count = 0;
     uint8_t* p = buf;
     int remaining_size = buf_size;
@@ -299,14 +299,14 @@ int bkv_get_kv_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin, i
 
     while (1) {
         int result_code = 0;
-        uint64_t result_length = 0;
-        int result_length_bytes_size = 0;
-        decode_length(buf + pos, remaining_size, &result_code, &result_length, &result_length_bytes_size);
-        if (result_code != 0 || result_length <= 0 || result_length_bytes_size <= 0) {
+        uint64_t length = 0;
+        int length_bytes_size = 0;
+        decode_length(buf + pos, remaining_size, &result_code, &length, &length_bytes_size);
+        if (result_code != 0 || length <= 0 || length_bytes_size <= 0) {
             // decode length error
             return BKV_RESULT_CODE_FAIL;
         }
-        int payload_len = result_length_bytes_size + result_length;
+        int payload_len = length_bytes_size + length;
         remaining_size -= payload_len;
         if (remaining_size < 0) {
             return BKV_RESULT_CODE_FAIL;
@@ -314,7 +314,6 @@ int bkv_get_kv_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin, i
 
         if (count == index) {
             *pos_begin = pos;
-            *pos_payload_begin = pos + result_length_bytes_size;
             *pos_end = pos + payload_len;
             return BKV_RESULT_CODE_SUCCESS;
         }
@@ -329,13 +328,24 @@ int bkv_get_kv_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin, i
     }
 }
 
-int bkv_get_key_from_kv_payload(uint8_t* buf, int buf_size, int* is_string_key, char* string_key, int max_string_len, uint64_t* number_key) {
+int bkv_get_key_from_kv(uint8_t* buf, int buf_size, int* is_string_key, char* string_key, int max_string_len, uint64_t* number_key) {
     if (buf_size <= 0) {
         // invalid buf
         return BKV_RESULT_CODE_INVALID_BUF;
     }
 
-    uint8_t first_byte = *buf;
+    int result_code = 0;
+    uint64_t result_length = 0;
+    int result_length_bytes_size = 0;
+    decode_length(buf, buf_size, &result_code, &result_length, &result_length_bytes_size);
+    if (result_code != 0 || result_length <= 0 || result_length_bytes_size <= 0) {
+        // decode length error
+        return BKV_RESULT_CODE_FAIL;
+    }
+
+    uint8_t* payload = buf + result_length_bytes_size;
+
+    uint8_t first_byte = *payload;
     *is_string_key = 0;
     if ((first_byte & 0x80) != 0) {
         *is_string_key = 1;
@@ -354,23 +364,34 @@ int bkv_get_key_from_kv_payload(uint8_t* buf, int buf_size, int* is_string_key, 
     if (*is_string_key == 1) {
         // strcpy
         for (int i = 0; i < key_len; i++) {
-            *(string_key + i) = (char) (*(buf + 1 + i));
+            *(string_key + i) = (char) (*(payload + 1 + i));
         }
         *(string_key + key_len) = 0;
     } else {
-        *number_key = bkv_decode_number(buf + 1, key_len);
+        *number_key = bkv_decode_number(payload + 1, key_len);
     }
 
     return BKV_RESULT_CODE_SUCCESS;
 }
 
-int bkv_get_value_from_kv_payload(uint8_t* buf, int buf_size, int* pos_begin) {
+int bkv_get_value_from_kv(uint8_t* buf, int buf_size, int* pos_begin) {
     if (buf_size <= 0) {
         // invalid buf
         return BKV_RESULT_CODE_INVALID_BUF;
     }
 
-    uint8_t first_byte = *buf;
+    int result_code = 0;
+    uint64_t result_length = 0;
+    int result_length_bytes_size = 0;
+    decode_length(buf, buf_size, &result_code, &result_length, &result_length_bytes_size);
+    if (result_code != 0 || result_length <= 0 || result_length_bytes_size <= 0) {
+        // decode length error
+        return BKV_RESULT_CODE_FAIL;
+    }
+
+    uint8_t* payload = buf + result_length_bytes_size;
+
+    uint8_t first_byte = *payload;
     int key_len = first_byte & 0x7F;
 
     if (key_len + 1 > buf_size) {
@@ -378,22 +399,21 @@ int bkv_get_value_from_kv_payload(uint8_t* buf, int buf_size, int* pos_begin) {
         return BKV_RESULT_CODE_KEY_LEN_EXCEED_STRING_LEN;
     }
 
-    *pos_begin = 1 + key_len;
+    *pos_begin = result_length_bytes_size + 1 + key_len;
 
     return BKV_RESULT_CODE_SUCCESS;
 }
 
-int bkv_get_key_by_index(uint8_t* buf, int buf_size, int index, int* is_string_key, char* string_key, int max_string_len, uint64_t* number_key) {
+int bkv_get_key_value_by_index(uint8_t* buf, int buf_size, int index, int* is_string_key, char* string_key, int max_string_len, uint64_t* number_key, int* value_pos_begin, int* value_pos_end) {
     int kv_pos_begin = 0;
-    int kv_pos_payload_begin = 0;
     int kv_pos_end = 0;
-    int result_get_kv = bkv_get_kv_by_index(buf, buf_size, index, &kv_pos_begin, &kv_pos_payload_begin, &kv_pos_end);
+    int result_get_kv = bkv_get_kv_by_index(buf, buf_size, index, &kv_pos_begin, &kv_pos_end);
     if (result_get_kv != BKV_RESULT_CODE_SUCCESS) {
         // get kv fail
         return BKV_RESULT_CODE_GET_KV_FAIL;
     }
 
-    if (kv_pos_end - kv_pos_begin <= 2) {
+    if (kv_pos_end - kv_pos_begin <= 3) {
         // invalid kv
         return BKV_RESULT_CODE_KV_INVALID;
     }
@@ -401,7 +421,43 @@ int bkv_get_key_by_index(uint8_t* buf, int buf_size, int index, int* is_string_k
     // LOGI("kv %d -> %d", kv_pos_begin, kv_pos_end);
     // bkv_dump_buf("kv", buf + kv_pos_begin, kv_pos_end - kv_pos_begin);
 
-    int result_get_key_from_kv = bkv_get_key_from_kv_payload(buf + kv_pos_payload_begin, kv_pos_end - kv_pos_payload_begin, is_string_key, string_key, max_string_len, number_key);
+    int result_get_key_from_kv = bkv_get_key_from_kv(buf + kv_pos_begin, kv_pos_end - kv_pos_begin, is_string_key, string_key, max_string_len, number_key);
+    if (result_get_key_from_kv != BKV_RESULT_CODE_SUCCESS) {
+        // get key from kv fail
+        return BKV_RESULT_CODE_GET_KEY_FAIL;
+    }
+
+    int kv_value_pos_begin = 0;
+    int result_get_value_from_kv = bkv_get_value_from_kv(buf + kv_pos_begin, kv_pos_end - kv_pos_begin, &kv_value_pos_begin);
+    if (result_get_value_from_kv != BKV_RESULT_CODE_SUCCESS) {
+        // get value from kv fail
+        return BKV_RESULT_CODE_GET_VALUE_FAIL;
+    }
+
+    *value_pos_begin = kv_pos_begin + kv_value_pos_begin;
+    *value_pos_end = kv_pos_end;
+
+    return BKV_RESULT_CODE_SUCCESS;
+}
+
+int bkv_get_key_by_index(uint8_t* buf, int buf_size, int index, int* is_string_key, char* string_key, int max_string_len, uint64_t* number_key) {
+    int kv_pos_begin = 0;
+    int kv_pos_end = 0;
+    int result_get_kv = bkv_get_kv_by_index(buf, buf_size, index, &kv_pos_begin, &kv_pos_end);
+    if (result_get_kv != BKV_RESULT_CODE_SUCCESS) {
+        // get kv fail
+        return BKV_RESULT_CODE_GET_KV_FAIL;
+    }
+
+    if (kv_pos_end - kv_pos_begin <= 3) {
+        // invalid kv
+        return BKV_RESULT_CODE_KV_INVALID;
+    }
+
+    // LOGI("kv %d -> %d", kv_pos_begin, kv_pos_end);
+    // bkv_dump_buf("kv", buf + kv_pos_begin, kv_pos_end - kv_pos_begin);
+
+    int result_get_key_from_kv = bkv_get_key_from_kv(buf + kv_pos_begin, kv_pos_end - kv_pos_begin, is_string_key, string_key, max_string_len, number_key);
     if (result_get_key_from_kv != BKV_RESULT_CODE_SUCCESS) {
         // get key from kv fail
         return BKV_RESULT_CODE_GET_KEY_FAIL;
@@ -412,27 +468,26 @@ int bkv_get_key_by_index(uint8_t* buf, int buf_size, int index, int* is_string_k
 
 int bkv_get_value_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin, int* pos_end) {
     int kv_pos_begin = 0;
-    int kv_pos_payload_begin = 0;
     int kv_pos_end = 0;
-    int result_get_kv = bkv_get_kv_by_index(buf, buf_size, index, &kv_pos_begin, &kv_pos_payload_begin, &kv_pos_end);
+    int result_get_kv = bkv_get_kv_by_index(buf, buf_size, index, &kv_pos_begin, &kv_pos_end);
     if (result_get_kv != BKV_RESULT_CODE_SUCCESS) {
         // get kv fail
         return BKV_RESULT_CODE_GET_KV_FAIL;
     }
 
-    if (kv_pos_end - kv_pos_begin <= 2) {
+    if (kv_pos_end - kv_pos_begin <= 3) {
         // invalid kv
         return BKV_RESULT_CODE_KV_INVALID;
     }
 
     int kv_value_pos_begin = 0;
-    int result_get_value_from_kv = bkv_get_value_from_kv_payload(buf + kv_pos_payload_begin, kv_pos_end - kv_pos_payload_begin, &kv_value_pos_begin);
+    int result_get_value_from_kv = bkv_get_value_from_kv(buf + kv_pos_begin, kv_pos_end - kv_pos_begin, &kv_value_pos_begin);
     if (result_get_value_from_kv != BKV_RESULT_CODE_SUCCESS) {
         // get value from kv fail
         return BKV_RESULT_CODE_GET_VALUE_FAIL;
     }
 
-    *pos_begin = kv_pos_payload_begin + kv_value_pos_begin;
+    *pos_begin = kv_pos_begin + kv_value_pos_begin;
     *pos_end = kv_pos_end;
 
     return BKV_RESULT_CODE_SUCCESS;
@@ -464,7 +519,7 @@ bkv_bool bkv_contains_number_key(uint8_t* buf, int buf_size, uint64_t key) {
         int is_string_key = 0;
         char string_key[33];
         uint64_t number_key = 0;
-        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &is_string_key, string_key, 32, &number_key);
+        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &is_string_key, string_key, BKV_MAX_STRING_KEY_LEN, &number_key);
         if (result_get_key != BKV_RESULT_CODE_SUCCESS) {
             return BKV_FALSE;
         }
@@ -507,7 +562,7 @@ int bkv_get_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, int* v
         int is_string_key = 0;
         char string_key[33];
         uint64_t number_key = 0;
-        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &is_string_key, string_key, 32, &number_key);
+        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &is_string_key, string_key, BKV_MAX_STRING_KEY_LEN, &number_key);
         if (result_get_key != BKV_RESULT_CODE_SUCCESS) {
             return 0;
         }

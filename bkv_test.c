@@ -43,12 +43,16 @@ void test_encode_decode() {
     offset += bkv_append_string_value_by_number_key(data + offset, size - offset, 6, "33");
     // add kv: n6 -> '33'
     offset += bkv_append_string_value_by_string_key(data + offset, size - offset, "n6", "33");
+    // add kv: zero -> 0
+    offset += bkv_append_number_value_by_string_key(data + offset, size - offset, "zero", 0);
+    // add kv: 0 -> 0
+    offset += bkv_append_number_value_by_number_key(data + offset, size - offset, 0, 0);
 
     // robust check
     int append_offset = bkv_append_by_number_key(data + offset, size - offset, 99, value, 3);
     if (append_offset == -1) {
         LOGE("append fail");
-        return;
+        exit(1);
     } else {
         offset += append_offset;
     }
@@ -65,50 +69,262 @@ void test_encode_decode() {
     int value_pos_end = 0;
     int result_code = bkv_get_value_by_number_key(data, offset, 2, &value_pos_begin, &value_pos_end);
     if (result_code == 0) {
-        LOGI("bkv_get_value_by_number_key result: %d", result_code);
+        LOGI("[n]key=2 result: %d", result_code);
         bkv_dump_buf("value", data + value_pos_begin, value_pos_end - value_pos_begin);
+
+        int content_size = value_pos_end - value_pos_begin + 1;
+        char content[content_size];
+        memset(content, 0, content_size);
+        memcpy(content, data + value_pos_begin, value_pos_end - value_pos_begin);
+        if (strcmp(string, content) != 0) {
+            LOGE("[n]key=2 wrong string content: %s", content);
+            exit(1);
+        }
+    } else {
+        LOGE("[n]key=2 fail: result=%d", result_code);
+        exit(1);
     }
 
     int contains_string_key = bkv_contains_string_key(data, offset, "dd");
     LOGI("contains_string_key: %s", contains_string_key ? "true" : "false");
     result_code = bkv_get_value_by_string_key(data, offset, "dd", &value_pos_begin, &value_pos_end);
     if (result_code == 0) {
-        LOGI("bkv_get_value_by_string_key result: %d", result_code);
+        LOGI("[s]key=dd result: %d", result_code);
         bkv_dump_buf("value", data + value_pos_begin, value_pos_end - value_pos_begin);
+
+        int content_size = value_pos_end - value_pos_begin + 1;
+        char content[content_size];
+        memset(content, 0, content_size);
+        memcpy(content, data + value_pos_begin, value_pos_end - value_pos_begin);
+        if (strcmp("012", content) != 0) {
+            LOGE("[s]key=dd wrong string content: %s", content);
+            exit(1);
+        }
+    } else {
+        LOGE("[s]key=dd fail: result=%d", result_code);
+        exit(1);
     }
 
     uint64_t get_num = 0;
     result_code = bkv_get_number_value_by_string_key(data, offset, "num", &get_num);
     if (result_code == 0) {
-        LOGI("bkv_get_number_value_by_string_key result: %d", result_code);
-        LOGI("num=%lld", (long long)get_num);
+        LOGI("[s]key=num result: %d", result_code);
+        if (get_num != 6396) {
+            LOGE("[s]key=num wrong number content: %llu", get_num);
+            exit(1);
+        }
+    } else {
+        LOGE("[s]key=num fail: result=%d", result_code);
+        exit(1);
     }
 
     get_num = 0;
     result_code = bkv_get_number_value_by_string_key(data, offset, "n3", &get_num);
     if (result_code == 0) {
-        LOGI("bkv_get_number_value_by_string_key result: %d", result_code);
-        LOGI("num=%lld", get_num);
+        LOGI("[s]key=n3 result: %d", result_code);
+        if (get_num != -1) {
+            LOGE("[s]key=n3 wrong number content: %llu", get_num);
+            exit(1);
+        }
+    } else {
+        LOGE("[s]key=n3 fail: result=%d", result_code);
+        exit(1);
     }
 
 
     char n6[1024];
     result_code = bkv_get_string_value_by_string_key(data, offset, "n6", n6);
     if (result_code == 0) {
-        LOGI("bkv_get_string_value_by_string_key result: %d", result_code);
-        LOGI("value=%s, strlen=%d", n6, strlen(n6));
+        LOGI("[s]key=n6 result: %d", result_code);
+        if (strcmp("33", n6) != 0) {
+            LOGE("[s]key=n6 wrong string content: %s", n6);
+            exit(1);
+        }
+    } else {
+        LOGE("[s]key=n6 fail: result=%d", result_code);
+        exit(1);
     }
 
-    result_code = bkv_get_string_value_by_number_key(data, offset, 6, n6);
+    char c6[1024];
+    result_code = bkv_get_string_value_by_number_key(data, offset, 6, c6);
     if (result_code == 0) {
-        LOGI("bkv_get_string_value_by_number_key result: %d", result_code);
-        LOGI("value=%s, strlen=%d", n6, strlen(n6));
+        LOGI("[n]key=6 result: %d", result_code);
+        if (strcmp("33", c6) != 0) {
+            LOGE("[n]key=6 wrong string content: %s", c6);
+            exit(1);
+        }
+    } else {
+        LOGE("[n]key=6 fail: result=%d", result_code);
+        exit(1);
+    }
+
+    uint64_t zero = 1;
+    result_code = bkv_get_number_value_by_string_key(data, offset, "zero", &zero);
+    if (result_code == 0) {
+        LOGI("[s]key=zero result: %d", result_code);
+        if (zero != 0) {
+            LOGE("[s]key=zero wrong number content: %llu", zero);
+            exit(1);
+        }
+    } else {
+        LOGE("[s]key=zero fail: result=%d", result_code);
+        exit(1);
+    }
+
+    zero = 1;
+    result_code = bkv_get_number_value_by_number_key(data, offset, 0, &zero);
+    if (result_code == 0) {
+        LOGI("[n]key=0 result: %d", result_code);
+        if (zero != 0) {
+            LOGE("[n]key=0 wrong number content: %llu", zero);
+            exit(1);
+        }
+    } else {
+        LOGE("[n]key=0 fail: result=%d", result_code);
+        exit(1);
+    }
+}
+
+void test_get_array_list() {
+    int size = 1024 * 100;
+    uint8_t data[size];
+    memset(data, 0, size);
+
+    int offset = 0;
+
+    int num = 100;
+
+    // append
+    for (int i = 0; i < num; i++) {
+        offset += bkv_append_number_value_by_string_key(data + offset, size - offset, "point", i);
+    }
+    
+    // check
+    int count = bkv_get_count(data, offset);
+    if (count != num) {
+        LOGE("num not equal");
+        exit(1);
+    }
+
+    int key_count = 0;
+
+    for (int i = 0; i < count; i++) {
+        int pos_begin = 0;
+        int pos_end = 0;
+        int result = bkv_get_kv_by_index(data, offset, i, &pos_begin, &pos_end);
+        if (result != 0) {
+            LOGE("get kv by index=%d fail, result=%d", i, result);
+            exit(1);
+        }
+
+        int is_string_key = 0;
+        char string_key[BKV_MAX_STRING_KEY_LEN + 1];
+        uint64_t number_key = 0;
+        result = bkv_get_key_from_kv(data + pos_begin, pos_end - pos_begin, &is_string_key, string_key, BKV_MAX_STRING_KEY_LEN, &number_key);
+        if (result != 0) {
+            LOGE("get key by index=%d fail, result=%d", i, result);
+            exit(1);
+        }
+        if (is_string_key != 1) {
+            LOGE("get key by index=%d fail, not string key", i);
+            exit(1);
+        }
+
+        if (strcmp(string_key, "point") != 0) {
+            continue;
+        }
+
+        key_count++;
+
+        int value_pos_begin = 0;
+        result = bkv_get_value_from_kv(data + pos_begin, pos_end - pos_begin, &value_pos_begin);
+        if (result != 0) {
+            LOGE("get value from kv by index=%d fail, result=%d", i, result);
+            exit(1);
+        }
+
+        uint64_t n = bkv_decode_number(data + pos_begin + value_pos_begin, pos_end - pos_begin - value_pos_begin);
+        if (n != i) {
+            LOGE("value from kv by index=%d invalid, v=%ld", i, n);
+            exit(1);
+        }
+
+    }
+
+    if (key_count != num) {
+        LOGE("key_count not equal");
+        exit(1);
+    }
+}
+
+void test_get_array_list_2() {
+    int size = 1024 * 100;
+    uint8_t data[size];
+    memset(data, 0, size);
+
+    int offset = 0;
+
+    int num = 100;
+
+    // append
+    for (int i = 0; i < num; i++) {
+        offset += bkv_append_number_value_by_string_key(data + offset, size - offset, "point", i);
+    }
+
+    // check
+    int count = bkv_get_count(data, offset);
+    if (count != num) {
+        LOGE("num not equal");
+        exit(1);
+    }
+
+    int key_count = 0;
+
+    for (int i = 0; i < count; i++) {
+        int is_string_key = 0;
+        char string_key[BKV_MAX_STRING_KEY_LEN + 1];
+        uint64_t number_key = 0;
+        int value_pos_begin = 0;
+        int value_pos_end = 0;
+        int result = bkv_get_key_value_by_index(data, offset, i, &is_string_key, string_key, BKV_MAX_STRING_KEY_LEN, &number_key, &value_pos_begin, &value_pos_end);
+        if (result != 0) {
+            LOGE("get kv by index=%d fail, result=%d", i, result);
+            exit(1);
+        }
+
+        if (is_string_key != 1) {
+            LOGE("get key by index=%d fail, not string key", i);
+            exit(1);
+        }
+
+        if (strcmp(string_key, "point") != 0) {
+            continue;
+        }
+
+        key_count++;
+
+        uint64_t n = bkv_decode_number(data + value_pos_begin, value_pos_end - value_pos_begin);
+        if (n != i) {
+            LOGE("value from kv by index=%d invalid, v=%ld", i, n);
+            exit(1);
+        }
+
+    }
+
+    if (key_count != num) {
+        LOGE("key_count not equal");
+        exit(1);
     }
 }
 
 int main() {
     // test_base();
     test_encode_decode();
+
+    test_get_array_list();
+
+    // more simple way
+    test_get_array_list_2();
 
     return 0;
 }

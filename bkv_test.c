@@ -317,6 +317,59 @@ void test_get_array_list_2() {
     }
 }
 
+uint8_t* hexs_to_bytes(const char* hex_string)
+{
+    size_t len = strlen(hex_string);
+    if (len % 2 != 0) {
+        return NULL;
+    }
+    size_t bytes_len = len / 2;
+    uint8_t* bytes = (uint8_t*) malloc(bytes_len);
+    for (size_t i = 0, j = 0; j < bytes_len; i += 2, j++) {
+        bytes[j] = (hex_string[i] % 32 + 9) % 25 * 16 + (hex_string[i + 1] % 32 + 9) % 25;
+    }
+        
+    return bytes;
+}
+
+float bytes_to_float(uint8_t *bytes, int big_endian) {
+    float f;
+    uint8_t *f_ptr = (uint8_t *) &f;
+    if (big_endian) {
+        f_ptr[3] = bytes[0];
+        f_ptr[2] = bytes[1];
+        f_ptr[1] = bytes[2];
+        f_ptr[0] = bytes[3];
+    } else {
+        f_ptr[3] = bytes[3];
+        f_ptr[2] = bytes[2];
+        f_ptr[1] = bytes[1];
+        f_ptr[0] = bytes[0];
+    }
+    return f;
+}
+
+void test_float() {
+    char* hex = "0B8266313F8CCCCD3F99999A078266323FA66666";
+    int data_size = strlen(hex);
+    uint8_t* data = hexs_to_bytes(hex);
+
+    int pos_begin = 0;
+    int pos_end = 0;
+    int result = bkv_get_value_by_index(data, data_size, 1, &pos_begin, &pos_end);
+    if (result != 0) {
+        LOGE("get kv index=1 fail, result=%d", result);
+        exit(1);
+    }
+
+    float f1 = bytes_to_float(data + pos_begin, 1);
+    printf("f1=%.6f", f1);
+    if (f1 != 1.3f) {
+        LOGE("wrong f1");
+        exit(1);
+    }
+}
+
 int main() {
     // test_base();
     test_encode_decode();
@@ -325,6 +378,8 @@ int main() {
 
     // more simple way
     test_get_array_list_2();
+
+    test_float();
 
     return 0;
 }

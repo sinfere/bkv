@@ -17,6 +17,8 @@ void test_base() {
 }
 
 void test_encode_decode() {
+    printf("\n\n[test encode decode]\n");
+
     char *string = "Hello, world";
     int size = 1024;
     uint8_t data[size];
@@ -186,6 +188,8 @@ void test_encode_decode() {
 }
 
 void test_get_array_list() {
+    printf("\n\n[test get array list]\n");
+
     int size = 1024 * 100;
     uint8_t data[size];
     memset(data, 0, size);
@@ -258,6 +262,8 @@ void test_get_array_list() {
 }
 
 void test_get_array_list_2() {
+    printf("\n\n[test get array list 2]\n");
+
     int size = 1024 * 100;
     uint8_t data[size];
     memset(data, 0, size);
@@ -350,6 +356,8 @@ float bytes_to_float(uint8_t *bytes, int big_endian) {
 }
 
 void test_float() {
+    printf("\n\n[test float]\n");
+
     char* hex = "0B8266313F8CCCCD3F99999A078266323FA66666";
     int data_size = strlen(hex);
     uint8_t* data = hexs_to_bytes(hex);
@@ -370,6 +378,73 @@ void test_float() {
     }
 }
 
+void test_float_2() {
+    printf("\n\n[test float 2]\n");
+
+    char* hex = "0B8266313F8CCCCD3F99999A078266323FA66666";
+    int data_size = strlen(hex);
+    uint8_t* data = hexs_to_bytes(hex);
+
+    int pos_begin = 0;
+    int pos_end = 0;
+    int result = bkv_get_value_by_index(data, data_size, 1, &pos_begin, &pos_end);
+    if (result != 0) {
+        LOGE("get kv index=1 fail, result=%d", result);
+        exit(1);
+    }
+
+    float f1 = bkv_decode_float(data + pos_begin);
+    printf("f1=%.6f", f1);
+    if (f1 != 1.3f) {
+        LOGE("wrong f1");
+        exit(1);
+    }
+}
+
+void test_float_3() {
+    printf("\n\n[test float 3]\n");
+
+    int size = 1024;
+    uint8_t data[size];
+    memset(data, 0, size);
+
+    int offset = 0;
+    // add kv: f1 -> 0.1f
+    offset += bkv_append_float_value_by_string_key(data + offset, size - offset, "f1", 0.1f);
+    // add kv: 1 -> 0.2f
+    offset += bkv_append_float_value_by_number_key(data + offset, size - offset, 1, 0.2f);
+
+    bkv_dump(data, offset);
+
+    float fs1 = 0;
+    int result_code = bkv_get_float_value_by_string_key(data, offset, "f1", &fs1);
+    if (result_code == 0) {
+        LOGI("[s]key=f1 result: %d", result_code);
+        if (fs1 != 0.1f) {
+            LOGE("[s]key=f1 wrong float content: %.6f", fs1);
+            exit(1);
+        }
+    } else {
+        LOGE("[s]key=f1 fail: result=%d", result_code);
+        exit(1);
+    }
+
+    float fn1 = 0;
+    result_code = bkv_get_float_value_by_number_key(data, offset, 1, &fn1);
+    if (result_code == 0) {
+        LOGI("[n]key=1 result: %d", result_code);
+        if (fn1 != 0.2f) {
+            LOGE("[n]key=1 wrong float content: %.6f", fn1);
+            exit(1);
+        }
+    } else {
+        LOGE("[n]key=1 fail: result=%d", result_code);
+        exit(1);
+    }
+
+
+}
+
 int main() {
     // test_base();
     test_encode_decode();
@@ -380,6 +455,10 @@ int main() {
     test_get_array_list_2();
 
     test_float();
+
+    test_float_2();
+
+    test_float_3();
 
     return 0;
 }

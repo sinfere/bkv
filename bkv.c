@@ -105,6 +105,24 @@ uint64_t bkv_decode_number(uint8_t* buf, size_t buf_size) {
     return n;
 }
 
+int bkv_encode_float(float f, uint8_t* buf, int pos) {
+   memcpy(buf, (uint8_t*)(&f), 4);
+   if (!is_big_endian()) {
+       reverse(buf, 4);
+   }
+   return pos + 4;
+}
+
+float bkv_decode_float(uint8_t* buf) {
+    float f;
+    uint8_t *fb = (uint8_t *) &f;
+    memcpy(fb, buf, 4);
+    if (!is_big_endian()) {
+        reverse(fb, 4);
+    }
+    return f;
+}
+
 int get_length_encoded_size(uint64_t length) {
     int i = 0;
     while (length > 0) {
@@ -221,6 +239,25 @@ int bkv_append_string_value_by_number_key(uint8_t* buf, int buf_size, uint64_t k
     int value_len = (int) strlen(value);
 
     return bkv_append(buf, buf_size, key_buf, key_len, 0, value, value_len);
+}
+
+int bkv_append_float_value_by_string_key(uint8_t* buf, int buf_size, char* key, float value) {
+    int key_len = (int) strlen(key);
+
+    uint8_t value_buf[4];
+    bkv_encode_float(value, value_buf, 0);
+
+    return bkv_append(buf, buf_size, key, key_len, 1, value_buf, 4);
+}
+
+int bkv_append_float_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, float value) {
+    uint8_t key_buf[16];
+    int key_len = bkv_encode_number(key, key_buf, 0);
+
+    uint8_t value_buf[4];
+    bkv_encode_float(value, value_buf, 0);
+
+    return bkv_append(buf, buf_size, key_buf, key_len, 0, value_buf, 4);
 }
 
 
@@ -653,6 +690,40 @@ int bkv_get_string_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key,
     value_buf[value_len] = 0;
 
     strcpy(value, value_buf);
+
+    return BKV_RESULT_CODE_SUCCESS;
+}
+
+int bkv_get_float_value_by_string_key(uint8_t* buf, int buf_size, char* key, float* value) {
+    if (bkv_contains_string_key(buf, buf_size, key) == BKV_FALSE) {
+        return BKV_RESULT_CODE_GET_KEY_FAIL;
+    }
+
+    int value_pos_begin = 0;
+    int value_pos_end = 0;
+    int result_code = bkv_get_value_by_string_key(buf, buf_size, key, &value_pos_begin, &value_pos_end);
+    if (result_code != 0) {
+        return BKV_RESULT_CODE_GET_VALUE_FAIL;
+    }
+
+    *value = bkv_decode_float(buf + value_pos_begin);
+
+    return BKV_RESULT_CODE_SUCCESS;
+}
+
+int bkv_get_float_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, float* value) {
+    if (bkv_contains_number_key(buf, buf_size, key) == BKV_FALSE) {
+        return BKV_RESULT_CODE_GET_KEY_FAIL;
+    }
+
+    int value_pos_begin = 0;
+    int value_pos_end = 0;
+    int result_code = bkv_get_value_by_number_key(buf, buf_size, key, &value_pos_begin, &value_pos_end);
+    if (result_code != 0) {
+        return BKV_RESULT_CODE_GET_VALUE_FAIL;
+    }
+
+    *value = bkv_decode_float(buf + value_pos_begin);
 
     return BKV_RESULT_CODE_SUCCESS;
 }

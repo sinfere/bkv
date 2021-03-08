@@ -26,6 +26,8 @@
 #define BKV_RESULT_CODE_KV_INVALID -7
 
 
+static const int bkv_endian_i = 1;
+#define is_big_endian() ( (*(char*)&bkv_endian_i) == 0 )
 
 
 
@@ -37,8 +39,18 @@ typedef int bkv_bool;
 void bkv_dump_buf(char* name, uint8_t* buf, int buf_size);
 void bkv_dump(uint8_t* buf, int buf_size);
 
+/**
+ * encode uint64_t to number buffer to save space
+ * @param number
+ * @param buf
+ * @param pos current buffer pos
+ * @return buffer new pos
+ */
 int bkv_encode_number(uint64_t number, uint8_t* buf, int pos);
 uint64_t bkv_decode_number(uint8_t* buf, size_t buf_size);
+
+int bkv_encode_float(float f, uint8_t* buf, int pos);
+float bkv_decode_float(uint8_t* buf);
 
 int bkv_append(uint8_t* buf, int buf_size, uint8_t* key, int key_len, int is_string_key, uint8_t* value, int value_len);
 int bkv_append_by_string_key(uint8_t* buf, int buf_size, char* key, uint8_t* value, int value_len);
@@ -47,6 +59,8 @@ int bkv_append_number_value_by_string_key(uint8_t* buf, int buf_size, char* key,
 int bkv_append_number_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, uint64_t value);
 int bkv_append_string_value_by_string_key(uint8_t* buf, int buf_size, char* key, char* value);
 int bkv_append_string_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, char* value);
+int bkv_append_float_value_by_string_key(uint8_t* buf, int buf_size, char* key, float value);
+int bkv_append_float_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, float value);
 
 bkv_bool bkv_contains_string_key(uint8_t* buf, int buf_size, char* key);
 bkv_bool bkv_contains_number_key(uint8_t* buf, int buf_size, uint64_t key);
@@ -57,6 +71,8 @@ int bkv_get_number_value_by_string_key(uint8_t* buf, int buf_size, char* key, ui
 int bkv_get_number_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, uint64_t* value);
 int bkv_get_string_value_by_string_key(uint8_t* buf, int buf_size, char* key, char* value);
 int bkv_get_string_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, char* value);
+int bkv_get_float_value_by_string_key(uint8_t* buf, int buf_size, char* key, float* value);
+int bkv_get_float_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, float* value);
 
 int bkv_get_count(uint8_t* buf, int buf_size);
 

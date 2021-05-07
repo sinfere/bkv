@@ -323,6 +323,87 @@ void test_get_array_list_2() {
     }
 }
 
+void test_get_array_list_3() {
+    printf("\n\n[test get array list 3]\n");
+
+    int size = 1024 * 100;
+    uint8_t data[size];
+    memset(data, 0, size);
+
+    int offset = 0;
+
+    int num = 100;
+
+    // append
+    for (int i = 0; i < num; i++) {
+        offset += bkv_append_number_value_by_string_key(data + offset, size - offset, "point", i);
+    }
+
+    // check
+    int count = bkv_get_count(data, offset);
+    if (count != num) {
+        LOGE("num not equal");
+        exit(1);
+    }
+
+    uint64_t values[count];
+
+    int key_count = bkv_get_number_value_list_by_string_key(data, offset, values, "point");
+
+    for (int i = 0; i < key_count; i++) {
+        if (values[i] != i) {
+            LOGE("value from kv by index=%d invalid, v=%ld", i, values[i]);
+            exit(1);
+        }
+    }
+
+    if (key_count != num) {
+        LOGE("key_count[%ld] != num[%ld]", key_count, num);
+        exit(1);
+    }
+}
+
+void test_get_array_list_4() {
+    printf("\n\n[test get array list 4]\n");
+
+    int size = 1024 * 100;
+    uint8_t data[size];
+    memset(data, 0, size);
+
+    int offset = 0;
+
+    int num = 100;
+
+    // append
+    for (int i = 0; i < num; i++) {
+        offset += bkv_append_number_value_by_number_key(data + offset, size - offset, 0x3, i);
+    }
+
+    // check
+    int count = bkv_get_count(data, offset);
+    if (count != num) {
+        LOGE("num not equal, count=%d", count);
+        exit(1);
+    }
+
+    uint64_t values[count];
+
+    int key_count = bkv_get_number_value_list_by_number_key(data, offset, values, 0x3);
+    LOGI("key_count: %ld", key_count);
+
+    for (int i = 0; i < key_count; i++) {
+        if (values[i] != i) {
+            LOGE("value from kv by index=%d invalid, v=%ld", i, values[i]);
+            exit(1);
+        }
+    }
+
+    if (key_count != num) {
+        LOGE("key_count[%ld] != num[%ld]", key_count, num);
+        exit(1);
+    }
+}
+
 uint8_t* hexs_to_bytes(const char* hex_string)
 {
     size_t len = strlen(hex_string);
@@ -453,6 +534,10 @@ int main() {
 
     // more simple way
     test_get_array_list_2();
+
+    test_get_array_list_3();
+
+    test_get_array_list_4();
 
     test_float();
 

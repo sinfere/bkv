@@ -75,6 +75,7 @@ int bkv_get_float_value_by_string_key(uint8_t* buf, int buf_size, char* key, flo
 int bkv_get_float_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, float* value);
 
 int bkv_get_count(uint8_t* buf, int buf_size);
+int bkv_get_count_by_key(uint8_t* buf, int buf_size, char* string_key, uint64_t number_key, int is_string_key);
 
 int bkv_get_kv_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin, int* pos_end);
 int bkv_get_key_from_kv(uint8_t* buf, int buf_size, int* is_string_key, char* string_key, int max_string_len, uint64_t* number_key);
@@ -83,6 +84,10 @@ int bkv_get_value_from_kv(uint8_t* buf, int buf_size, int* pos_begin);
 int bkv_get_key_value_by_index(uint8_t* buf, int buf_size, int index, int* is_string_key, char* string_key, int max_string_len, uint64_t* number_key, int* value_pos_begin, int* value_pos_end);
 int bkv_get_key_by_index(uint8_t* buf, int buf_size, int index, int* is_string_key, char* string_key, int max_string_len, uint64_t* number_key);
 int bkv_get_value_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin, int* pos_end);
+
+int bkv_get_number_value_list_by_key(uint8_t* buf, int buf_size, uint64_t* list, char* string_key, uint64_t number_key, int is_string_key);
+int bkv_get_number_value_list_by_string_key(uint8_t* buf, int buf_size, uint64_t* list, char* key);
+int bkv_get_number_value_list_by_number_key(uint8_t* buf, int buf_size, uint64_t* list, uint64_t key);
 
 
 

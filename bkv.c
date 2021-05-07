@@ -328,6 +328,34 @@ int bkv_get_count(uint8_t* buf, int buf_size) {
     }
 }
 
+int bkv_get_count_by_key(uint8_t* buf, int buf_size, char* string_key, uint64_t number_key, int is_string_key) {
+    int count = 0;
+    int size = bkv_get_count(buf, buf_size);
+    for (int i = 0 ; i < size; i++) {
+        int item_is_string_key = 0;
+        char item_string_key[BKV_MAX_STRING_KEY_LEN + 1];
+        uint64_t item_number_key = 0;
+        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &item_is_string_key, item_string_key, BKV_MAX_STRING_KEY_LEN, &item_number_key);
+        if (result_get_key != BKV_RESULT_CODE_SUCCESS) {
+            continue;
+        }
+
+        if (is_string_key == 1 && item_is_string_key == 1) {
+            if (strcmp(item_string_key, string_key) == 0) {
+                count++;
+            }
+        }
+
+        if (is_string_key == 0 && item_is_string_key == 0) {
+            if (item_number_key == number_key) {
+                count++;
+            }
+        }
+    }
+
+    return count;
+}
+
 int bkv_get_kv_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin, int* pos_end) {
     int count = 0;
     uint8_t* p = buf;
@@ -530,62 +558,69 @@ int bkv_get_value_by_index(uint8_t* buf, int buf_size, int index, int* pos_begin
     return BKV_RESULT_CODE_SUCCESS;
 }
 
-bkv_bool bkv_contains_string_key(uint8_t* buf, int buf_size, char* key) {
+bkv_bool bkv_contains_key(uint8_t* buf, int buf_size, char* string_key, uint64_t number_key, int is_string_key) {
     int count = bkv_get_count(buf, buf_size);
     for (int i = 0; i < count; i++) {
-        int is_string_key = 0;
-        char string_key[BKV_MAX_STRING_KEY_LEN + 1];
-        uint64_t number_key = 0;
-        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &is_string_key, string_key, BKV_MAX_STRING_KEY_LEN, &number_key);
+        int item_is_string_key = 0;
+        char item_string_key[BKV_MAX_STRING_KEY_LEN + 1];
+        uint64_t item_number_key = 0;
+        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &item_is_string_key, item_string_key, BKV_MAX_STRING_KEY_LEN, &item_number_key);
         if (result_get_key != BKV_RESULT_CODE_SUCCESS) {
-            break;
+            continue;
         }
-        if (is_string_key == 1) {
-            if (strcmp(key, string_key) == 0) {
+
+        if (is_string_key == 1 && item_is_string_key == 1) {
+            if (strcmp(item_string_key, string_key) == 0) {
+                return BKV_TRUE;
+            }
+        }
+
+        if (is_string_key == 0 && item_is_string_key == 0) {
+            if (item_number_key == number_key) {
                 return BKV_TRUE;
             }
         }
     }
 
     return BKV_FALSE;
+}
+
+bkv_bool bkv_contains_string_key(uint8_t* buf, int buf_size, char* key) {
+    return bkv_contains_key(buf, buf_size, key, 0, 1);
 }
 
 bkv_bool bkv_contains_number_key(uint8_t* buf, int buf_size, uint64_t key) {
-    int count = bkv_get_count(buf, buf_size);
-    for (int i = 0; i < count; i++) {
-        int is_string_key = 0;
-        char string_key[33];
-        uint64_t number_key = 0;
-        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &is_string_key, string_key, BKV_MAX_STRING_KEY_LEN, &number_key);
-        if (result_get_key != BKV_RESULT_CODE_SUCCESS) {
-            return BKV_FALSE;
-        }
-        if (is_string_key == 0) {
-            if (number_key == key) {
-                return BKV_TRUE;
-            }
-        }
-    }
-
-    return BKV_FALSE;
+    return bkv_contains_key(buf, buf_size, NULL, key, 0);
 }
 
-int bkv_get_value_by_string_key(uint8_t* buf, int buf_size, char* key, int* value_pos_begin, int* value_pos_end) {
+int bkv_get_value_by_key(uint8_t* buf, int buf_size, int* value_pos_begin, int* value_pos_end, char* string_key, uint64_t number_key, int is_string_key) {
     int count = bkv_get_count(buf, buf_size);
     for (int i = 0; i < count; i++) {
-        int is_string_key = 0;
-        char string_key[BKV_MAX_STRING_KEY_LEN + 1];
-        uint64_t number_key = 0;
-        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &is_string_key, string_key, BKV_MAX_STRING_KEY_LEN, &number_key);
+        int item_is_string_key = 0;
+        char item_string_key[BKV_MAX_STRING_KEY_LEN + 1];
+        uint64_t item_number_key = 0;
+        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &item_is_string_key, item_string_key, BKV_MAX_STRING_KEY_LEN, &item_number_key);
         if (result_get_key != BKV_RESULT_CODE_SUCCESS) {
-            break;
+            continue;
         }
-        if (is_string_key == 1) {
-            if (strcmp(key, string_key) == 0) {
-                int result_get_value = bkv_get_value_by_index(buf, buf_size, i, value_pos_begin, value_pos_end);
-                if (result_get_value == BKV_RESULT_CODE_SUCCESS) {
-                    return BKV_RESULT_CODE_SUCCESS;
-                }
+
+        int found = 0;
+        if (item_is_string_key == 1 && is_string_key == 1) {
+            if (strcmp(item_string_key, string_key) == 0) {
+                found = 1;
+            }
+        }
+
+        if (item_is_string_key == 0 && is_string_key == 0) {
+            if (item_number_key == number_key) {
+                found = 1;
+            }
+        }
+
+        if (found) {
+            int result_get_value = bkv_get_value_by_index(buf, buf_size, i, value_pos_begin, value_pos_end);
+            if (result_get_value == BKV_RESULT_CODE_SUCCESS) {
+                return BKV_RESULT_CODE_SUCCESS;
             }
         }
     }
@@ -593,37 +628,22 @@ int bkv_get_value_by_string_key(uint8_t* buf, int buf_size, char* key, int* valu
     return BKV_RESULT_CODE_FAIL;
 }
 
-int bkv_get_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, int* value_pos_begin, int* value_pos_end) {
-    int count = bkv_get_count(buf, buf_size);
-    for (int i = 0; i < count; i++) {
-        int is_string_key = 0;
-        char string_key[33];
-        uint64_t number_key = 0;
-        int result_get_key = bkv_get_key_by_index(buf, buf_size, i, &is_string_key, string_key, BKV_MAX_STRING_KEY_LEN, &number_key);
-        if (result_get_key != BKV_RESULT_CODE_SUCCESS) {
-            return 0;
-        }
-        if (is_string_key == 0) {
-            if (number_key == key) {
-                int result_get_value = bkv_get_value_by_index(buf, buf_size, i, value_pos_begin, value_pos_end);
-                if (result_get_value == BKV_RESULT_CODE_SUCCESS) {
-                    return 0;
-                }
-            }
-        }
-    }
-
-    return 0;
+int bkv_get_value_by_string_key(uint8_t* buf, int buf_size, char* key, int* value_pos_begin, int* value_pos_end) {
+    return bkv_get_value_by_key(buf, buf_size, value_pos_begin, value_pos_end, key, 0, 1);
 }
 
-int bkv_get_number_value_by_string_key(uint8_t* buf, int buf_size, char* key, uint64_t* value) {
-    if (bkv_contains_string_key(buf, buf_size, key) == BKV_FALSE) {
+int bkv_get_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, int* value_pos_begin, int* value_pos_end) {
+    return bkv_get_value_by_key(buf, buf_size, value_pos_begin, value_pos_end, NULL, key, 0);
+}
+
+int bkv_get_number_value_by_key(uint8_t* buf, int buf_size, uint64_t* value, char* string_key, uint64_t number_key, int is_string_key) {
+    if (bkv_contains_key(buf, buf_size, string_key, number_key, is_string_key) == BKV_FALSE) {
         return BKV_RESULT_CODE_GET_KEY_FAIL;
     }
 
     int value_pos_begin = 0;
     int value_pos_end = 0;
-    int result_code = bkv_get_value_by_string_key(buf, buf_size, key, &value_pos_begin, &value_pos_end);
+    int result_code = bkv_get_value_by_key(buf, buf_size, &value_pos_begin, &value_pos_end, string_key, number_key, is_string_key);
     if (result_code != 0) {
         return BKV_RESULT_CODE_GET_VALUE_FAIL;
     }
@@ -633,97 +653,109 @@ int bkv_get_number_value_by_string_key(uint8_t* buf, int buf_size, char* key, ui
     return BKV_RESULT_CODE_SUCCESS;
 }
 
+int bkv_get_number_value_by_string_key(uint8_t* buf, int buf_size, char* key, uint64_t* value) {
+    return bkv_get_number_value_by_key(buf, buf_size, value, key, 0, 1);
+}
+
 int bkv_get_number_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, uint64_t* value) {
-    if (bkv_contains_number_key(buf, buf_size, key) == BKV_FALSE) {
+    return bkv_get_number_value_by_key(buf, buf_size, value, NULL, key, 0);
+}
+
+int bkv_get_string_value_by_key(uint8_t* buf, int buf_size, char* value, char* string_key, uint64_t number_key, int is_string_key) {
+    if (bkv_contains_key(buf, buf_size, string_key, number_key, is_string_key) == BKV_FALSE) {
         return BKV_RESULT_CODE_GET_KEY_FAIL;
     }
 
     int value_pos_begin = 0;
     int value_pos_end = 0;
-    int result_code = bkv_get_value_by_number_key(buf, buf_size, key, &value_pos_begin, &value_pos_end);
+    int result_code = bkv_get_value_by_key(buf, buf_size, &value_pos_begin, &value_pos_end, string_key, number_key, is_string_key);
     if (result_code != 0) {
         return BKV_RESULT_CODE_GET_VALUE_FAIL;
     }
 
-    *value = bkv_decode_number(buf + value_pos_begin, value_pos_end - value_pos_begin);
+    int value_len = value_pos_end - value_pos_begin;
+    char value_buf[value_len + 1];
+    memcpy(value_buf, buf + value_pos_begin, value_pos_end - value_pos_begin);
+    value_buf[value_len] = 0;
+
+    strcpy(value, value_buf);
 
     return BKV_RESULT_CODE_SUCCESS;
 }
 
 int bkv_get_string_value_by_string_key(uint8_t* buf, int buf_size, char* key, char* value) {
-    if (bkv_contains_string_key(buf, buf_size, key) == BKV_FALSE) {
-        return BKV_RESULT_CODE_GET_KEY_FAIL;
-    }
-
-    int value_pos_begin = 0;
-    int value_pos_end = 0;
-    int result_code = bkv_get_value_by_string_key(buf, buf_size, key, &value_pos_begin, &value_pos_end);
-    if (result_code != 0) {
-        return BKV_RESULT_CODE_GET_VALUE_FAIL;
-    }
-
-    int value_len = value_pos_end - value_pos_begin;
-    char value_buf[value_len + 1];
-    memcpy(value_buf, buf + value_pos_begin, value_pos_end - value_pos_begin);
-    value_buf[value_len] = 0;
-
-    strcpy(value, value_buf);
-
-    return BKV_RESULT_CODE_SUCCESS;
+    return bkv_get_string_value_by_key(buf, buf_size, value, key, 0, 1);
 }
 
 int bkv_get_string_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, char* value) {
-    if (bkv_contains_number_key(buf, buf_size, key) == BKV_FALSE) {
+    return bkv_get_string_value_by_key(buf, buf_size, value, NULL, key, 0);
+}
+
+int bkv_get_float_value_by_key(uint8_t* buf, int buf_size, float* value, char* string_key, uint64_t number_key, int is_string_key) {
+    if (bkv_contains_key(buf, buf_size, string_key, number_key, is_string_key) == BKV_FALSE) {
         return BKV_RESULT_CODE_GET_KEY_FAIL;
     }
 
     int value_pos_begin = 0;
     int value_pos_end = 0;
-    int result_code = bkv_get_value_by_number_key(buf, buf_size, key, &value_pos_begin, &value_pos_end);
+    int result_code = bkv_get_value_by_key(buf, buf_size, &value_pos_begin, &value_pos_end, string_key, number_key, is_string_key);
     if (result_code != 0) {
         return BKV_RESULT_CODE_GET_VALUE_FAIL;
     }
 
-    int value_len = value_pos_end - value_pos_begin;
-    char value_buf[value_len + 1];
-    memcpy(value_buf, buf + value_pos_begin, value_pos_end - value_pos_begin);
-    value_buf[value_len] = 0;
-
-    strcpy(value, value_buf);
+    *value = bkv_decode_float(buf + value_pos_begin);
 
     return BKV_RESULT_CODE_SUCCESS;
 }
 
 int bkv_get_float_value_by_string_key(uint8_t* buf, int buf_size, char* key, float* value) {
-    if (bkv_contains_string_key(buf, buf_size, key) == BKV_FALSE) {
-        return BKV_RESULT_CODE_GET_KEY_FAIL;
-    }
-
-    int value_pos_begin = 0;
-    int value_pos_end = 0;
-    int result_code = bkv_get_value_by_string_key(buf, buf_size, key, &value_pos_begin, &value_pos_end);
-    if (result_code != 0) {
-        return BKV_RESULT_CODE_GET_VALUE_FAIL;
-    }
-
-    *value = bkv_decode_float(buf + value_pos_begin);
-
-    return BKV_RESULT_CODE_SUCCESS;
+    return bkv_get_float_value_by_key(buf, buf_size, value, key, 0, 1);
 }
 
 int bkv_get_float_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, float* value) {
-    if (bkv_contains_number_key(buf, buf_size, key) == BKV_FALSE) {
-        return BKV_RESULT_CODE_GET_KEY_FAIL;
+    return bkv_get_float_value_by_key(buf, buf_size, value, NULL, key, 0);
+}
+
+int bkv_get_number_value_list_by_key(uint8_t* buf, int buf_size, uint64_t* list, char* string_key, uint64_t number_key, int is_string_key) {
+    int count = 0;
+    int size = bkv_get_count(buf, buf_size);
+    for (int i = 0; i < size; i++) {
+        int item_is_string_key = 0;
+        char item_string_key[BKV_MAX_STRING_KEY_LEN + 1];
+        uint64_t item_number_key = 0;
+        int value_pos_begin = 0;
+        int value_pos_end = 0;
+        int result_get_key = bkv_get_key_value_by_index(buf, buf_size, i, &item_is_string_key, item_string_key, BKV_MAX_STRING_KEY_LEN, &item_number_key, &value_pos_begin, &value_pos_end);
+        if (result_get_key != BKV_RESULT_CODE_SUCCESS) {
+            continue;
+        }
+
+        int found = 0;
+        if (item_is_string_key == 1 && is_string_key == 1) {
+            if (strcmp(item_string_key, string_key) == 0) {
+                found = 1;
+            }
+        }
+
+        if (item_is_string_key == 0 && is_string_key == 0) {
+            if (item_number_key == number_key) {
+                found = 1;
+            }
+        }
+
+        if (found) {
+            uint64_t value = bkv_decode_number(buf + value_pos_begin, value_pos_end - value_pos_begin);
+            list[count++] = value;
+        }
     }
 
-    int value_pos_begin = 0;
-    int value_pos_end = 0;
-    int result_code = bkv_get_value_by_number_key(buf, buf_size, key, &value_pos_begin, &value_pos_end);
-    if (result_code != 0) {
-        return BKV_RESULT_CODE_GET_VALUE_FAIL;
-    }
+    return count;
+}
 
-    *value = bkv_decode_float(buf + value_pos_begin);
+int bkv_get_number_value_list_by_string_key(uint8_t* buf, int buf_size, uint64_t* list, char* key) {
+    return bkv_get_number_value_list_by_key(buf, buf_size, list, key, 0, 1);
+}
 
-    return BKV_RESULT_CODE_SUCCESS;
+int bkv_get_number_value_list_by_number_key(uint8_t* buf, int buf_size, uint64_t* list, uint64_t key) {
+    return bkv_get_number_value_list_by_key(buf, buf_size, list, NULL, key, 0);
 }

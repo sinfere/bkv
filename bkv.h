@@ -36,7 +36,7 @@ static const int bkv_endian_i = 1;
 
 typedef int bkv_bool;
 
-void bkv_dump_buf(char* name, uint8_t* buf, int buf_size);
+void bkv_dump_buf(char* name, const uint8_t* buf, int buf_size);
 void bkv_dump(uint8_t* buf, int buf_size);
 
 /**
@@ -47,12 +47,12 @@ void bkv_dump(uint8_t* buf, int buf_size);
  * @return buffer new pos
  */
 int bkv_encode_number(uint64_t number, uint8_t* buf, int pos);
-uint64_t bkv_decode_number(uint8_t* buf, size_t buf_size);
+uint64_t bkv_decode_number(const uint8_t* buf, size_t buf_size);
 
 int bkv_encode_float(float f, uint8_t* buf, int pos);
 float bkv_decode_float(uint8_t* buf);
 
-int bkv_append(uint8_t* buf, int buf_size, uint8_t* key, int key_len, int is_string_key, uint8_t* value, int value_len);
+int bkv_append(uint8_t* buf, int buf_size, const uint8_t* key, int key_len, int is_string_key, const uint8_t* value, int value_len);
 int bkv_append_by_string_key(uint8_t* buf, int buf_size, char* key, uint8_t* value, int value_len);
 int bkv_append_by_number_key(uint8_t* buf, int buf_size, uint64_t key, uint8_t* value, int value_len);
 int bkv_append_number_value_by_string_key(uint8_t* buf, int buf_size, char* key, uint64_t value);
@@ -89,7 +89,28 @@ int bkv_get_number_value_list_by_key(uint8_t* buf, int buf_size, uint64_t* list,
 int bkv_get_number_value_list_by_string_key(uint8_t* buf, int buf_size, uint64_t* list, char* key);
 int bkv_get_number_value_list_by_number_key(uint8_t* buf, int buf_size, uint64_t* list, uint64_t key);
 
+#define bkv_a_s(b, bl, k, v, vl) bkv_append_by_string_key(b, bl, k, v, vl)
+#define bkv_a_s_n(b, l, k, v) bkv_append_number_value_by_string_key(b, l, k, v)
+#define bkv_a_s_s(b, l, k, v) bkv_append_string_value_by_string_key(b, l, k, v)
+#define bkv_a_s_f(b, l, k, v) bkv_append_float_value_by_string_key(b, l, k, v)
 
+#define bkv_a_n(b, bl, k, v, vl) bkv_append_by_number_key(b, bl, k, v, vl)
+#define bkv_a_n_n(b, l, k, v) bkv_append_number_value_by_number_key(b, l, k, v)
+#define bkv_a_n_s(b, l, k, v) bkv_append_string_value_by_number_key(b, l, k, v)
+#define bkv_a_n_f(b, l, k, v) bkv_append_float_value_by_number_key(b, l, k, v)
+
+#define bkv_c_s(b, l, k) bkv_contains_string_key(b, l, k)
+#define bkv_c_n(b, l, k) bkv_contains_number_key(b, l, k)
+
+#define bkv_g_s(b, l, k, vl, ve) bkv_get_value_by_string_key(b, l, k, vl, ve)
+#define bkv_g_s_n(b, l, k, v) bkv_get_number_value_by_string_key(b, l, k, v)
+#define bkv_g_s_s(b, l, k, v) bkv_get_string_value_by_string_key(b, l, k, v)
+#define bkv_g_s_f(b, l, k, v) bkv_get_float_value_by_string_key(b, l, k, v)
+
+#define bkv_g_n(b, l, k, vl, ve) bkv_get_value_by_number_key(b, l, k, vl, ve)
+#define bkv_g_n_n(b, l, k, v) bkv_get_number_value_by_number_key(b, l, k, v)
+#define bkv_g_n_s(b, l, k, v) bkv_get_string_value_by_number_key(b, l, k, v)
+#define bkv_g_n_f(b, l, k, v) bkv_get_float_value_by_number_key(b, l, k, v)
 
 
 

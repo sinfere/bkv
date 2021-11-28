@@ -1,6 +1,6 @@
 #include "bkv.h"
 
-void bkv_dump_buf(char* name, uint8_t* buf, int buf_size) {
+void bkv_dump_buf(char* name, const uint8_t* buf, int buf_size) {
     int i, j;
 
     printf("%-5s[%d]: ", name, buf_size);
@@ -90,7 +90,7 @@ int bkv_encode_number(uint64_t number, uint8_t* buf, int pos) {
     return pos + i;
 }
 
-uint64_t bkv_decode_number(uint8_t* buf, size_t buf_size) {
+uint64_t bkv_decode_number(const uint8_t* buf, size_t buf_size) {
     int i;
 
     if (buf_size > 8) {
@@ -151,7 +151,7 @@ int encode_length(uint64_t length, uint8_t* buf) {
     return i;
 }
 
-void decode_length(uint8_t* buf, size_t buf_size, int* result_code, uint64_t* result_length, int* result_length_byte_size) {
+void decode_length(const uint8_t* buf, size_t buf_size, int* result_code, uint64_t* result_length, int* result_length_byte_size) {
     // single byte
     uint8_t first_byte = *buf;
     if ((first_byte & 0x80) == 0) {
@@ -262,8 +262,8 @@ int bkv_append_float_value_by_number_key(uint8_t* buf, int buf_size, uint64_t ke
 
 
 
-int bkv_append(uint8_t* buf, int buf_size, uint8_t* key, int key_len, int is_string_key, uint8_t* value, int value_len) {
-    uint64_t payload_length = (uint64_t) (key_len + 1 + value_len);
+int bkv_append(uint8_t* buf, int buf_size, const uint8_t* key, int key_len, int is_string_key, const uint8_t* value, int value_len) {
+    int payload_length = key_len + 1 + value_len;
     int length_encoded_size = get_length_encoded_size(payload_length);
     if (length_encoded_size + payload_length >= buf_size) {
         // length not enough

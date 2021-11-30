@@ -105,6 +105,13 @@ uint64_t bkv_decode_number(const uint8_t* buf, size_t buf_size) {
     return n;
 }
 
+void bkv_decode_string(const uint8_t* buf, size_t buf_size, char* value) {
+    char value_buf[buf_size + 1];
+    memcpy(value_buf, buf, buf_size);
+    value_buf[buf_size] = 0;
+    strcpy(value, value_buf);
+}
+
 int bkv_encode_float(float f, uint8_t* buf, int pos) {
    memcpy(buf, (uint8_t*)(&f), 4);
    if (!is_big_endian()) {
@@ -758,4 +765,50 @@ int bkv_get_number_value_list_by_string_key(uint8_t* buf, int buf_size, uint64_t
 
 int bkv_get_number_value_list_by_number_key(uint8_t* buf, int buf_size, uint64_t* list, uint64_t key) {
     return bkv_get_number_value_list_by_key(buf, buf_size, list, NULL, key, 0);
+}
+
+int bkv_traverse(uint8_t* buf, int buf_size, void (*func)(int is_string_key, char* string_key, uint64_t* number_key, const uint8_t* value, int value_len, void* data), void* func_data) {
+    int count = 0;
+    uint8_t* p = buf;
+    int remaining_size = buf_size;
+    int pos = 0;
+
+    while (1) {
+        int result_code = 0;
+        uint64_t length = 0;
+        int length_bytes_size = 0;
+        decode_length(buf + pos, remaining_size, &result_code, &length, &length_bytes_size);
+        if (result_code != 0 || length <= 0 || length_bytes_size <= 0) {
+            // decode length error
+            return BKV_RESULT_CODE_FAIL;
+        }
+        int payload_len = length_bytes_size + length;
+        remaining_size -= payload_len;
+        if (remaining_size < 0) {
+            return BKV_RESULT_CODE_FAIL;
+        }
+
+        int is_string_key = 0;
+        char string_key[BKV_MAX_STRING_KEY_LEN + 1];
+        uint64_t number_key = 0;
+        int get_key_result = bkv_get_key_from_kv(buf + pos, payload_len, &is_string_key, string_key, BKV_MAX_STRING_KEY_LEN, &number_key);
+        if (get_key_result != 0) {
+            return BKV_RESULT_CODE_FAIL;
+        }
+        int value_pos_begin = 0;
+        int get_value_result = bkv_get_value_from_kv(buf + pos, payload_len, &value_pos_begin);
+        if (get_value_result != 0) {
+            return BKV_RESULT_CODE_FAIL;
+        }
+
+        func(is_string_key, string_key, &number_key, buf + pos + value_pos_begin, payload_len - value_pos_begin, func_data);
+
+        if (remaining_size == 0) {
+            // complete
+            return 0;
+        }
+
+        pos += payload_len;
+        count++;
+    }
 }

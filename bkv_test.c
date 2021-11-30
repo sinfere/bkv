@@ -358,6 +358,88 @@ void test_encode_decode_short() {
     }
 }
 
+struct bkv_object {
+    int number;
+    char dd[BKV_MAX_STRING_KEY_LEN];
+};
+
+void traverse_func(int is_string_key, char *string_key, uint64_t *number_key, const uint8_t *value, int value_len, void *data) {
+    struct bkv_object* bo = (struct bkv_object*) data;
+
+    if (is_string_key) {
+        if (strcmp("dd", string_key) == 0) {
+            bkv_decode_string(value, value_len, bo->dd);
+        } else if (strcmp("num", string_key) == 0) {
+            bo->number = bkv_decode_number(value, value_len);
+        }
+    }
+
+}
+
+void test_iterate() {
+    printf("\n\n[test encode decode short]\n");
+
+    char *string = "Hello, world";
+    int size = 1024;
+    uint8_t data[size];
+    memset(data, 0, size);
+
+    uint8_t key[1] = {2};
+    uint8_t value[3] = {3, 4, 5};
+
+    int offset = 0;
+    // add kv: 2 -> Hello, world
+    offset += bkv_append(data + offset, size - offset, key, 1, 0, (uint8_t *)string, strlen(string));
+    // add kv: 2 -> 0x030405
+    offset += bkv_append(data + offset, size - offset, key, 1, 0, value, 3);
+    // add kv: num -> 6396
+    offset += bkv_a_s_n(data + offset, size - offset, "num", 6396);
+    // add kv: dd -> 0x303132
+    uint8_t value_string[3] = {0x30, 0x31, 0x32};
+    offset += bkv_a_s(data + offset, size - offset, "dd", value_string, 3);
+    // add kv: 3 -> num(3)
+    offset += bkv_a_n_n(data + offset, size - offset, 3, 3);
+    // add kv: n3 -> num(3)
+    offset += bkv_a_s_n(data + offset, size - offset, "n3", -1);
+    // add kv: 6 -> '33'
+    offset += bkv_a_n_s(data + offset, size - offset, 6, "33");
+    // add kv: n6 -> '33'
+    offset += bkv_a_s_s(data + offset, size - offset, "n6", "33");
+    // add kv: zero -> 0
+    offset += bkv_a_s_n(data + offset, size - offset, "zero", 0);
+    // add kv: 0 -> 0
+    offset += bkv_a_n_n(data + offset, size - offset, 0, 0);
+
+    int count = bkv_get_count(data, offset);
+    LOGI("bkv count: %d", count);
+
+    bkv_dump(data, offset);
+
+    struct bkv_object bo = {};
+    
+    int code = bkv_traverse(data, offset, traverse_func, &bo);
+    if (code != 0) {
+        LOGE("traverse fail: %d", code);
+        exit(1);
+    }
+
+
+
+    LOGI("traverse result: %d", code);
+    LOGI("bo.num = %d", bo.number);
+    LOGI("bo.dd = %s", bo.dd);
+
+    if (strcmp("012", bo.dd) != 0) {
+        LOGE("traverse wrong bo.dd: %s", bo.dd);
+        exit(1);
+    }
+
+    if (bo.number != 6396) {
+        LOGE("traverse wrong bo.number: %d", bo.number);
+        exit(1);
+    }
+}
+
 void test_get_array_list() {
     printf("\n\n[test get array list]\n");
 
@@ -712,9 +794,7 @@ int main() {
 
     test_float();
 
-    test_float_2();
-
-    test_float_3();
+    test_iterate();
 
     return 0;
 }

@@ -49,6 +49,8 @@ void bkv_dump(uint8_t* buf, int buf_size);
 int bkv_encode_number(uint64_t number, uint8_t* buf, int pos);
 uint64_t bkv_decode_number(const uint8_t* buf, size_t buf_size);
 
+void bkv_decode_string(const uint8_t* buf, size_t buf_size, char* value);
+
 int bkv_encode_float(float f, uint8_t* buf, int pos);
 float bkv_decode_float(uint8_t* buf);
 
@@ -89,6 +91,9 @@ int bkv_get_number_value_list_by_key(uint8_t* buf, int buf_size, uint64_t* list,
 int bkv_get_number_value_list_by_string_key(uint8_t* buf, int buf_size, uint64_t* list, char* key);
 int bkv_get_number_value_list_by_number_key(uint8_t* buf, int buf_size, uint64_t* list, uint64_t key);
 
+int bkv_traverse(uint8_t *buf, int buf_size, void (*func)(int is_string_key, char *string_key, uint64_t *number_key, const uint8_t *value, int value_len, void *data), void *func_data);
+
+#define bkv_a(b, bl, k, kl, isk, v, vl) bkv_append(b, bl, k, kl, isk, v, vl)
 #define bkv_a_s(b, bl, k, v, vl) bkv_append_by_string_key(b, bl, k, v, vl)
 #define bkv_a_s_n(b, l, k, v) bkv_append_number_value_by_string_key(b, l, k, v)
 #define bkv_a_s_s(b, l, k, v) bkv_append_string_value_by_string_key(b, l, k, v)

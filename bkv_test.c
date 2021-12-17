@@ -359,8 +359,9 @@ void test_encode_decode_short() {
 }
 
 struct bkv_object {
-    int number;
+    int int_number;
     char dd[BKV_MAX_STRING_KEY_LEN];
+    float float_number;
 };
 
 void traverse_func(int is_string_key, char *string_key, uint64_t *number_key, const uint8_t *value, int value_len, void *data) {
@@ -409,6 +410,8 @@ void test_iterate() {
     offset += bkv_a_s_n(data + offset, size - offset, "zero", 0);
     // add kv: 0 -> 0
     offset += bkv_a_n_n(data + offset, size - offset, 0, 0);
+    // add kv: float -> 6.8
+    offset += bkv_a_s_f(data + offset, size - offset, "float", 6.8);
 
     int count = bkv_get_count(data, offset);
     LOGI("bkv count: %d", count);

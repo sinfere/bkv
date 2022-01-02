@@ -846,3 +846,286 @@ int bkv_traverse(uint8_t* buf, int buf_size, void (*func)(int is_string_key, cha
         count++;
     }
 }
+
+
+
+
+
+
+
+int bkv_context_append(struct bkv_context* context, const uint8_t* key, int key_len, int is_string_key, const uint8_t* value, int value_len) {
+    uint8_t* buf = context->buf + context->offset;
+    int buf_size = context->size - context->offset;
+    int offset = bkv_append(buf, buf_size, key, key_len, is_string_key, value, value_len);
+    if (offset <= 0) {
+        return offset;
+    }
+
+    context->offset += offset;
+    return 0;
+}
+
+int bkv_context_append_number_value_by_string_key(struct bkv_context* context, char* key, uint64_t value) {
+    uint8_t* buf = context->buf + context->offset;
+    int buf_size = context->size - context->offset;
+    int offset = bkv_append_number_value_by_string_key(buf, buf_size, key, value);
+    if (offset <= 0) {
+        return offset;
+    }
+
+    context->offset += offset;
+    return 0;
+}
+
+int bkv_context_append_number_value_by_number_key(struct bkv_context* context, uint64_t key, uint64_t value) {
+    uint8_t* buf = context->buf + context->offset;
+    int buf_size = context->size - context->offset;
+    int offset = bkv_append_number_value_by_number_key(buf, buf_size, key, value);
+    if (offset <= 0) {
+        return offset;
+    }
+
+    context->offset += offset;
+    return 0;
+}
+
+int bkv_context_append_string_value_by_string_key(struct bkv_context* context, char* key, char* value) {
+    uint8_t* buf = context->buf + context->offset;
+    int buf_size = context->size - context->offset;
+    int offset = bkv_append_string_value_by_string_key(buf, buf_size, key, value);
+    if (offset <= 0) {
+        return offset;
+    }
+
+    context->offset += offset;
+    return 0;
+}
+
+int bkv_context_append_string_value_by_number_key(struct bkv_context* context, uint64_t key, char* value) {
+    uint8_t* buf = context->buf + context->offset;
+    int buf_size = context->size - context->offset;
+    int offset = bkv_append_string_value_by_number_key(buf, buf_size, key, value);
+    if (offset <= 0) {
+        return offset;
+    }
+
+    context->offset += offset;
+    return 0;
+}
+
+int bkv_context_append_float_value_by_string_key(struct bkv_context* context, char* key, float value) {
+    uint8_t* buf = context->buf + context->offset;
+    int buf_size = context->size - context->offset;
+    int offset = bkv_append_float_value_by_string_key(buf, buf_size, key, value);
+    if (offset <= 0) {
+        return offset;
+    }
+
+    context->offset += offset;
+    return 0;
+}
+
+int bkv_context_append_float_value_by_number_key(struct bkv_context* context, uint64_t key, float value) {
+    uint8_t* buf = context->buf + context->offset;
+    int buf_size = context->size - context->offset;
+    int offset = bkv_append_float_value_by_number_key(buf, buf_size, key, value);
+    if (offset <= 0) {
+        return offset;
+    }
+
+    context->offset += offset;
+    return 0;
+}
+
+int bkv_context_append_double_value_by_string_key(struct bkv_context* context, char* key, double value) {
+    uint8_t* buf = context->buf + context->offset;
+    int buf_size = context->size - context->offset;
+    int offset = bkv_append_double_value_by_string_key(buf, buf_size, key, value);
+    if (offset <= 0) {
+        return offset;
+    }
+
+    context->offset += offset;
+    return 0;
+}
+
+int bkv_context_append_double_value_by_number_key(struct bkv_context* context, uint64_t key, double value) {
+    uint8_t* buf = context->buf + context->offset;
+    int buf_size = context->size - context->offset;
+    int offset = bkv_append_double_value_by_number_key(buf, buf_size, key, value);
+    if (offset <= 0) {
+        return offset;
+    }
+
+    context->offset += offset;
+    return 0;
+}
+
+int bkv_context_get_count(struct bkv_context* context) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_count(buf, buf_size);
+}
+
+int bkv_context_get_count_by_key(struct bkv_context* context, char* string_key, uint64_t number_key, int is_string_key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_count_by_key(buf, buf_size, string_key, number_key, is_string_key);
+}
+
+int bkv_context_get_kv_by_index(struct bkv_context* context, int index, int* pos_begin, int* pos_end) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_kv_by_index(buf, buf_size, index, pos_begin, pos_end);
+}
+
+int bkv_context_get_key_value_by_index(struct bkv_context* context, int index, int* is_string_key, char* string_key, int max_string_len, uint64_t* number_key, int* value_pos_begin, int* value_pos_end) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_key_value_by_index(buf, buf_size, index, is_string_key, string_key, max_string_len, number_key, value_pos_begin, value_pos_end);
+}
+
+int bkv_context_get_key_by_index(struct bkv_context* context, int index, int* is_string_key, char* string_key, int max_string_len, uint64_t* number_key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_key_by_index(buf, buf_size, index, is_string_key, string_key, max_string_len, number_key);
+}
+
+int bkv_context_get_value_by_index(struct bkv_context* context, int index, int* pos_begin, int* pos_end) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_value_by_index(buf, buf_size, index, pos_begin, pos_end);
+}
+
+bkv_bool bkv_context_contains_key(struct bkv_context* context, char* string_key, uint64_t number_key, int is_string_key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_contains_key(buf, buf_size, string_key, number_key, is_string_key);
+}
+
+bkv_bool bkv_context_contains_string_key(struct bkv_context* context, char* key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_contains_string_key(buf, buf_size, key);
+}
+
+bkv_bool bkv_context_contains_number_key(struct bkv_context* context, uint64_t key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_contains_number_key(buf, buf_size, key);
+}
+
+int bkv_context_get_value_by_key(struct bkv_context* context, int* value_pos_begin, int* value_pos_end, char* string_key, uint64_t number_key, int is_string_key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_value_by_key(buf, buf_size, value_pos_begin, value_pos_end, string_key, number_key, is_string_key);
+}
+
+int bkv_context_get_value_by_string_key(struct bkv_context* context, char* key, int* value_pos_begin, int* value_pos_end) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_value_by_string_key(buf, buf_size, key, value_pos_begin, value_pos_end);
+}
+
+int bkv_context_get_value_by_number_key(struct bkv_context* context, uint64_t key, int* value_pos_begin, int* value_pos_end) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_value_by_number_key(buf, buf_size, key, value_pos_begin, value_pos_end);
+}
+
+int bkv_context_get_number_value_by_key(struct bkv_context* context, uint64_t* value, char* string_key, uint64_t number_key, int is_string_key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_number_value_by_key(buf, buf_size, value, string_key, number_key, is_string_key);
+}
+
+int bkv_context_get_number_value_by_string_key(struct bkv_context* context, char* key, uint64_t* value) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_number_value_by_string_key(buf, buf_size, key, value);
+}
+
+int bkv_context_get_number_value_by_number_key(struct bkv_context* context, uint64_t key, uint64_t* value) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_number_value_by_number_key(buf, buf_size, key, value);
+}
+
+int bkv_context_get_string_value_by_key(struct bkv_context* context, char* value, char* string_key, uint64_t number_key, int is_string_key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_string_value_by_key(buf, buf_size, value, string_key, number_key, is_string_key);
+}
+
+int bkv_context_get_string_value_by_string_key(struct bkv_context* context, char* key, char* value) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_string_value_by_string_key(buf, buf_size, key, value);
+}
+
+int bkv_context_get_string_value_by_number_key(struct bkv_context* context, uint64_t key, char* value) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_string_value_by_number_key(buf, buf_size, key, value);
+}
+
+int bkv_context_get_float_value_by_key(struct bkv_context* context, float* value, char* string_key, uint64_t number_key, int is_string_key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_float_value_by_key(buf, buf_size, value, string_key, number_key, is_string_key);
+}
+
+int bkv_context_get_float_value_by_string_key(struct bkv_context* context, char* key, float* value) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_float_value_by_string_key(buf, buf_size, key, value);
+}
+
+int bkv_context_get_float_value_by_number_key(struct bkv_context* context, uint64_t key, float* value) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_float_value_by_number_key(buf, buf_size, key, value);
+}
+
+int bkv_context_get_number_value_list_by_key(struct bkv_context* context, uint64_t* list, char* string_key, uint64_t number_key, int is_string_key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_number_value_list_by_key(buf, buf_size, list, string_key, number_key, is_string_key);
+}
+
+int bkv_context_get_number_value_list_by_string_key(struct bkv_context* context, uint64_t* list, char* key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_number_value_list_by_string_key(buf, buf_size, list, key);
+}
+
+int bkv_context_get_number_value_list_by_number_key(struct bkv_context* context, uint64_t* list, uint64_t key) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_get_number_value_list_by_number_key(buf, buf_size, list, key);
+}
+
+int bkv_context_traverse(struct bkv_context* context, void (*func)(int is_string_key, char* string_key, uint64_t* number_key, const uint8_t* value, int value_len, void* data), void* func_data) {
+    uint8_t* buf = context->buf;
+    int buf_size = context->size;
+    return bkv_traverse(buf, buf_size, func, func_data);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

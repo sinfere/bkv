@@ -122,7 +122,11 @@ int bkv_traverse(uint8_t *buf, int buf_size, void (*func)(int is_string_key, cha
 #define bkv_g_n_s(b, l, k, v) bkv_get_string_value_by_number_key(b, l, k, v)
 #define bkv_g_n_f(b, l, k, v) bkv_get_float_value_by_number_key(b, l, k, v)
 
-
+struct bkv_context {
+    uint8_t* buf;
+    int size;
+    int offset;
+};
 
 
 

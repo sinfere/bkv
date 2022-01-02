@@ -54,6 +54,9 @@ void bkv_decode_string(const uint8_t* buf, size_t buf_size, char* value);
 int bkv_encode_float(float f, uint8_t* buf, int pos);
 float bkv_decode_float(uint8_t* buf);
 
+int bkv_encode_double(double f, uint8_t* buf, int pos);
+double bkv_decode_double(uint8_t* buf);
+
 int bkv_append(uint8_t* buf, int buf_size, const uint8_t* key, int key_len, int is_string_key, const uint8_t* value, int value_len);
 int bkv_append_by_string_key(uint8_t* buf, int buf_size, char* key, uint8_t* value, int value_len);
 int bkv_append_by_number_key(uint8_t* buf, int buf_size, uint64_t key, uint8_t* value, int value_len);
@@ -63,6 +66,8 @@ int bkv_append_string_value_by_string_key(uint8_t* buf, int buf_size, char* key,
 int bkv_append_string_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, char* value);
 int bkv_append_float_value_by_string_key(uint8_t* buf, int buf_size, char* key, float value);
 int bkv_append_float_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, float value);
+int bkv_append_double_value_by_string_key(uint8_t* buf, int buf_size, char* key, double value);
+int bkv_append_double_value_by_number_key(uint8_t* buf, int buf_size, uint64_t key, double value);
 
 bkv_bool bkv_contains_string_key(uint8_t* buf, int buf_size, char* key);
 bkv_bool bkv_contains_number_key(uint8_t* buf, int buf_size, uint64_t key);

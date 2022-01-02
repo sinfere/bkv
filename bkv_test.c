@@ -49,6 +49,14 @@ void test_encode_decode() {
     offset += bkv_append_number_value_by_string_key(data + offset, size - offset, "zero", 0);
     // add kv: 0 -> 0
     offset += bkv_append_number_value_by_number_key(data + offset, size - offset, 0, 0);
+    // add kv: ff -> 0.1f
+    offset += bkv_append_float_value_by_string_key(data + offset, size - offset, "ff", 0.123f);
+    // add kv: 320 -> 0.1f
+    offset += bkv_append_float_value_by_number_key(data + offset, size - offset, 320, 0.123f);
+    // add kv: fd -> 0.1
+    offset += bkv_append_double_value_by_string_key(data + offset, size - offset, "fd", 0.123456789);
+    // add kv: 640 -> 0.1
+    offset += bkv_append_double_value_by_number_key(data + offset, size - offset, 640, 0.123456789);
 
     // robust check
     int append_offset = bkv_append_by_number_key(data + offset, size - offset, 99, value, 3);
@@ -183,6 +191,32 @@ void test_encode_decode() {
         }
     } else {
         LOGE("[n]key=0 fail: result=%d", result_code);
+        exit(1);
+    }
+
+    float ff = 0;
+    result_code = bkv_get_float_value_by_string_key(data, offset, "ff", &ff);
+    if (result_code == 0) {
+        LOGI("[s]key=ff result: %d", result_code);
+        if (ff != 0.123f) {
+            LOGE("[s]key=ff wrong float content: %f", ff);
+            exit(1);
+        }
+    } else {
+        LOGE("[s]key=ff fail: result=%d", result_code);
+        exit(1);
+    }
+
+    ff = 0;
+    result_code = bkv_get_float_value_by_number_key(data, offset, 320, &ff);
+    if (result_code == 0) {
+        LOGI("[n]key=320 result: %d", result_code);
+        if (ff != 0.123f) {
+            LOGE("[n]key=320 wrong float content: %f", ff);
+            exit(1);
+        }
+    } else {
+        LOGE("[n]key=320 fail: result=%d", result_code);
         exit(1);
     }
 }
@@ -359,6 +393,7 @@ void test_encode_decode_short() {
 }
 
 struct bkv_object {
+    uint64_t number;
     int int_number;
     char dd[BKV_MAX_STRING_KEY_LEN];
     float float_number;

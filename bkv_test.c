@@ -4,6 +4,7 @@
 #include <time.h>
 
 #include "bkv.h"
+#include "bkv_plus.h"
 
 void test_base() {
     char *string = "Hello, world";
@@ -464,7 +465,7 @@ void test_iterate() {
 
 
     LOGI("traverse result: %d", code);
-    LOGI("bo.num = %d", bo.number);
+    LOGI("bo.num = %llu", bo.number);
     LOGI("bo.dd = %s", bo.dd);
 
     if (strcmp("012", bo.dd) != 0) {
@@ -473,7 +474,7 @@ void test_iterate() {
     }
 
     if (bo.number != 6396) {
-        LOGE("traverse wrong bo.number: %d", bo.number);
+        LOGE("traverse wrong bo.number: %llu", bo.number);
         exit(1);
     }
 }
@@ -643,13 +644,13 @@ void test_get_array_list_3() {
 
     for (int i = 0; i < key_count; i++) {
         if (values[i] != i) {
-            LOGE("value from kv by index=%d invalid, v=%ld", i, values[i]);
+            LOGE("value from kv by index=%d invalid, v=%llu", i, values[i]);
             exit(1);
         }
     }
 
     if (key_count != num) {
-        LOGE("key_count[%ld] != num[%ld]", key_count, num);
+        LOGE("key_count[%d] != num[%d]", key_count, num);
         exit(1);
     }
 }
@@ -680,17 +681,17 @@ void test_get_array_list_4() {
     uint64_t values[count];
 
     int key_count = bkv_get_number_value_list_by_number_key(data, offset, values, 0x3);
-    LOGI("key_count: %ld", key_count);
+    LOGI("key_count: %d", key_count);
 
     for (int i = 0; i < key_count; i++) {
         if (values[i] != i) {
-            LOGE("value from kv by index=%d invalid, v=%ld", i, values[i]);
+            LOGE("value from kv by index=%d invalid, v=%llu", i, values[i]);
             exit(1);
         }
     }
 
     if (key_count != num) {
-        LOGE("key_count[%ld] != num[%ld]", key_count, num);
+        LOGE("key_count[%d] != num[%d]", key_count, num);
         exit(1);
     }
 }
@@ -710,7 +711,7 @@ uint8_t* hexs_to_bytes(const char* hex_string)
     return bytes;
 }
 
-float bytes_to_float(uint8_t *bytes, int big_endian) {
+float bytes_to_float(const uint8_t *bytes, int big_endian) {
     float f;
     uint8_t *f_ptr = (uint8_t *) &f;
     if (big_endian) {

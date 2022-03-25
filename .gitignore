@@ -9,5 +9,8 @@ mem_test.dSYM/
 mem_test
 sync.sh
 
+test_example.dSYM
+test_example
+
 build
 .vscode

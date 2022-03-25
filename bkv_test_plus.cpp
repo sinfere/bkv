@@ -5,6 +5,7 @@
 
 extern "C" {
 #include "bkv.h"
+#include "bkv_plus.h"
 }
 
 using namespace std;

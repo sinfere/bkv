@@ -6,12 +6,12 @@ set(SOURCES bkv.c)
 
 add_library(bkv SHARED ${SOURCES})
 
-add_executable(bkv_test bkv_test.c)
+add_executable(bkv_test bkv_test.c bkv_plus.h bkv_plus.c)
 
 
 
 target_link_libraries(bkv_test bkv)
 
-add_executable(bkv_test_plus bkv.c bkv_test_plus.cpp )
+add_executable(bkv_test_plus bkv.c bkv_test_plus.cpp bkv_plus.h bkv_plus.c)
 
 target_link_libraries(bkv_test_plus bkv)

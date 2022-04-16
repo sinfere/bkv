@@ -9,7 +9,13 @@ def kv_to_hex(kv: KV) -> str:
 
 class TestBKV(TestCase):
     def test_pack(self):
-        self.fail()
+        bkv = BKV()
+        bkv.add(KV(2, "Hello, world"))
+        bkv.add(KV(2, bytearray([3, 4, 5])))
+        bkv.add(KV("dd", "012"))
+        bkv.add(KV(99, bytearray([3, 4, 5])))
+        self.assertEqual(bkv.pack().hex().upper(),
+                         "0E010248656C6C6F2C20776F726C6405010203040506826464303132050163030405")
 
     def test_unpack(self):
         bkv = BKV.unpack(bytearray.fromhex("0E010248656C6C6F2C20776F726C6405010203040506826464303132050163030405"))

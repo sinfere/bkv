@@ -1,0 +1,132 @@
+buildscript {
+    ext.kotlin_version = '1.4.20'
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.2.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+//apply plugin: 'org.junit.platform.gradle.plugin'
+
+group 'com.dix.codec'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'idea'
+apply plugin: 'maven-publish'
+apply plugin: "com.jfrog.artifactory"
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.google.code.findbugs:jsr305:3.0.2'
+
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.4.2'
+    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
+    testRuntime("org.junit.jupiter:junit-jupiter-engine:5.4.2")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+}
+
+test {
+    useJUnitPlatform {
+        // includeTags 'fast', 'smoke & feature-a'
+        // excludeTags 'slow', 'ci'
+        includeEngines 'junit-jupiter'
+        // excludeEngines 'junit-vintage'
+    }
+}
+
+task publishBaseJar(type: Jar) {
+    // classifier = 'base'
+    from sourceSets.main.output
+    exclude 'com/dix/app/**'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            // from components.java
+
+            groupId 'com.dix.base'
+            artifactId 'bkv'
+            version '0.0.14'
+
+            artifact publishBaseJar
+
+            pom.withXml { xmlFile ->
+                def root = xmlFile.asNode()
+                // root.remove(root["dependencyManagement"])
+                def dependenciesNode = root.appendNode('dependencies')
+                // def dependenciesNode = asNode().getAt("dependencyManagement")[0].getAt("dependencies")[0]
+                configurations.compile.allDependencies.each {
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', it.group)
+                    dependencyNode.appendNode('artifactId', it.name)
+                    dependencyNode.appendNode('version', it.version)
+                }
+            }
+        }
+    }
+}
+
+model {
+    tasks.generatePomFileForMavenJavaPublication {
+        destination = file("$buildDir/generated-pom.xml")
+    }
+}
+
+artifactory {
+    contextUrl = "${artifactory_context_url}"   //The base Artifactory URL if not overridden by the publisher/resolver
+    publish {
+        repository {
+            repoKey = 'gradle-release-local'
+            username = "${artifactory_username}"
+            password = "${artifactory_password}"
+            maven = true
+        }
+        defaults {
+            // Reference to Gradle publications defined in the build script.
+            // This is how we tell the Artifactory Plugin which artifacts should be
+            // published to Artifactory.
+            publications('mavenJava')
+            publishArtifacts = true
+            // Properties to be attached to the published artifacts.
+            properties = ['qa.level': 'basic', 'dev.team' : 'core']
+            // Publish generated POM files to Artifactory (true by default)
+            publishPom = true
+        }
+    }
+    resolve {
+        repository {
+            repoKey = 'gradle-release'
+            username = "${artifactory_username}"
+            password = "${artifactory_password}"
+            maven = true
+        }
+    }
+}
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}

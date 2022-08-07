@@ -1,0 +1,84 @@
+buildscript {
+    ext.kotlin_version = '1.7.0'
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.2.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+plugins {
+    id 'java'
+}
+
+//apply plugin: 'org.junit.platform.gradle.plugin'
+
+group 'com.dix.codec'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'idea'
+apply plugin: 'maven-publish'
+apply plugin: "com.jfrog.artifactory"
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+repositories {
+    maven { url 'https://maven.aliyun.com/repository/public/' }
+    maven {
+        url "https://maven.sinfere.com/artifactory/gradle-release-local"
+        credentials {
+            username = "${artifactory_username}"
+            password = "${artifactory_password}"
+        }
+    }
+}
+
+dependencies {
+//    compile 'com.google.code.findbugs:jsr305:3.0.2'
+
+    // https://www.slf4j.org/manual.html
+    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'org.slf4j:slf4j-reload4j:1.7.36'
+    implementation 'ch.qos.reload4j:reload4j:1.2.22'
+
+    implementation 'io.netty:netty-all:4.1.79.Final'
+    implementation 'com.dix.base:bkv:0.0.14'
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.4.2")
+
+}
+
+test {
+    useJUnitPlatform {
+        // includeTags 'fast', 'smoke & feature-a'
+        // excludeTags 'slow', 'ci'
+        includeEngines 'junit-jupiter'
+        // excludeEngines 'junit-vintage'
+    }
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+}

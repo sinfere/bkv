@@ -1,0 +1,25 @@
+.gradle
+.DS_STORE
+
+build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+
+.idea
+*.iws
+*.iml
+*.ipr
+
+out/
+
+dist/
+
+gradle
+gradlew
+gradlew.bat

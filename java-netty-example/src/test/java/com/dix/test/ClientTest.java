@@ -30,8 +30,45 @@ class ClientTest {
     }
 
     @Test
-    void bench1K() throws IOException {
+    void bench1K() throws IOException, InterruptedException {
+        EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
 
+        for (int i = 0; i < 10000; i++) {
+            NettyClient client = new NettyClient("127.0.0.1", 33000, eventLoopGroup);
+            new Thread(() -> {
+                try {
+                    client.boot();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
+
+            TimeUnit.MILLISECONDS.sleep(10);
+        }
+
+
+        TimeUnit.SECONDS.sleep(6_00);
+    }
+
+    @Test
+    void bench1K2() throws IOException, InterruptedException {
+        EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+
+        for (int i = 0; i < 10000; i++) {
+            NettyClient client = new NettyClient("127.0.0.1", 33000, eventLoopGroup);
+            new Thread(() -> {
+                try {
+                    client.boot();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
+
+            TimeUnit.MILLISECONDS.sleep(10);
+        }
+
+
+        TimeUnit.SECONDS.sleep(6_00);
     }
 
 }

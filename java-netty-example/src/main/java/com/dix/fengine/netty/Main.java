@@ -12,6 +12,7 @@ public class Main {
         NettyServer nettyServer = new NettyServer(serverAddress);
         try {
             logger.info("bootstrap netty server");
+            logger.info("pid={}", ProcessHandle.current().pid());
             nettyServer.start();
         } catch (Exception ex) {
             logger.error("exception: {}", ex.toString());

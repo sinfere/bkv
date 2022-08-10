@@ -9,6 +9,7 @@ buildscript {
         classpath "org.jfrog.buildinfo:build-info-extractor-gradle:4+"
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.2.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "gradle.plugin.com.google.cloud.tools:jib-gradle-plugin:3.0.0"
     }
 }
 
@@ -26,6 +27,7 @@ apply plugin: 'kotlin'
 apply plugin: 'idea'
 apply plugin: 'maven-publish'
 apply plugin: "com.jfrog.artifactory"
+apply plugin: "com.google.cloud.tools.jib"
 
 sourceCompatibility = 1.8
 
@@ -81,4 +83,21 @@ compileTestKotlin {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+}
+
+jib {
+    from {
+        image = 'openjdk:20-jdk'
+    }
+    to {
+        image = 'java-netty-example'
+    }
+    container {
+        appRoot = '/app'
+        jvmFlags = ['-Djava.security.egd=file:/dev/./urandom', '-Xverify:none', '-noverify', '-XX:TieredStopAtLevel=1', '-Dfile.encoding=UTF-8']
+        mainClass = 'com.dix.fengine.netty.Main'
+        args = []
+        format = 'Docker'
+    }
+    allowInsecureRegistries = true
 }

@@ -22,6 +22,7 @@ public class ServerInitializer extends ChannelInitializer<SocketChannel> {
     public void initChannel(SocketChannel channel) throws Exception {
         ChannelPipeline cp = channel.pipeline();
         cp.addLast(new IdleStateHandler(0, 0, 6_00, TimeUnit.SECONDS));
+        cp.addLast(new LifecycleHandler());
         cp.addLast(new BKVDecoder());
         cp.addLast(new BKVEncoder());
         cp.addLast(new BKVHandler(threadPoolExecutor));

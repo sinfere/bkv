@@ -48,7 +48,9 @@ public class Frame {
 
     public static byte[] makeHelloFrame() throws IOException {
         BKV bkv = new BKV();
-        bkv.add(1, "hello, world");
+        bkv.add(1, 1);
+        bkv.add(2, "demo");
+        bkv.add(3, "hello, world");
         return Frame.makeFrame(bkv);
     }
 }

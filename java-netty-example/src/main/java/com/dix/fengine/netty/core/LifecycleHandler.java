@@ -1,17 +1,13 @@
 package com.dix.fengine.netty.core;
 
-import com.dix.codec.bkv.BKV;
+import com.dix.fengine.netty.client.ClientRegistry;
+import com.dix.fengine.netty.metric.Metric;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandler;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class LifecycleHandler extends ChannelInboundHandlerAdapter {
 
@@ -25,7 +21,9 @@ public class LifecycleHandler extends ChannelInboundHandlerAdapter {
     public void channelActive(@NotNull ChannelHandlerContext ctx) throws Exception {
         super.channelActive(ctx);
 
-        int count = Metric.incrConnCount();
+        ClientRegistry.getInstance().put(ctx);
+
+        int count = Metric.getInstance().connectionCount.incr();
         logger.info("[channelActive] con count: {}", count);
     }
 
@@ -33,7 +31,9 @@ public class LifecycleHandler extends ChannelInboundHandlerAdapter {
     public void channelInactive(@NotNull ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
 
-        int count = Metric.decConnCount();
+        ClientRegistry.getInstance().remove(ctx);
+
+        int count = Metric.getInstance().connectionCount.dec();
         logger.info("[channelInactive] con count: {}", count);
     }
 

@@ -42,13 +42,13 @@ public class NettyServer extends Server {
                     int port = Integer.parseInt(array[1]);
                     ChannelFuture future = bootstrap.bind(host, port).sync();
 
-                    logger.info("server started on port {}", port);
+                    logger.info("Netty server started on port {}", port);
                     future.channel().closeFuture().sync();
                 } catch (Exception e) {
                     if (e instanceof InterruptedException) {
-                        logger.info("server stop");
+                        logger.info("Netty server stop");
                     } else {
-                        logger.error("server error", e);
+                        logger.error("Netty server error", e);
                     }
                 } finally {
                     try {

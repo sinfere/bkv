@@ -2,6 +2,7 @@ package com.dix.codec.bkv;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -20,6 +21,30 @@ class BKVTest {
         bkv.add(new KV("dd", "012".getBytes()));
         bkv.add(new KV(99, new byte[]{ 0x03, 0x04, 0x05 }));
         assertEquals("0E010248656C6C6F2C20776F726C6405010203040506826464303132050163030405", CodecUtil.bytesToHex(bkv.pack()));
+    }
+
+    @Test
+    void packOTA() throws IOException {
+        BKV bkv = new BKV();
+        bkv.add(new KV(0x01, new byte[]{ 0x06 }));
+        bkv.add(new KV(0x03, new byte[]{ 0x01 }));
+        bkv.add(new KV(0xB0, new byte[]{ 0x01 }));
+        bkv.add(new KV(0xB1, new byte[]{ 0x01 }));
+        bkv.add(new KV(0xB3, CodecUtil.hexToBytes("C800")));
+        bkv.add(new KV(0xB7, CodecUtil.hexToBytes("1aabac6d068eef6a7bad3fdf50a05cc8")));
+        bkv.add(new KV(0xB8, new byte[]{ 0x01 }));
+        System.out.println(CodecUtil.bytesToHex(bkv.pack()));
+
+        byte[] buf = bkv.pack();
+        ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+        byte[] part = new byte[8];
+        while (true) {
+            int readCount = bais.read(part);
+            if (readCount <= 0) {
+                break;
+            }
+            System.out.println(CodecUtil.bytesToHex(part).substring(0, readCount * 2));
+        }
     }
 
     @Test

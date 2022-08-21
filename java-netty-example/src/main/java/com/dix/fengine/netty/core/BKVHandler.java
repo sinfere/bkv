@@ -1,6 +1,8 @@
 package com.dix.fengine.netty.core;
 
 import com.dix.codec.bkv.BKV;
+import com.dix.fengine.netty.client.ClientRegistry;
+import com.google.common.base.Strings;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -23,6 +25,11 @@ public class BKVHandler extends SimpleChannelInboundHandler<BKV> {
     public void channelRead0(final ChannelHandlerContext ctx, final BKV request) {
         // filter beat ping
         request.dump();
+
+        String clientId = request.getStringValue(0x02);
+        if (!Strings.isNullOrEmpty(clientId)) {
+            ClientRegistry.getInstance().updateSessionClient(ctx, clientId);
+        }
     }
 
     @Override

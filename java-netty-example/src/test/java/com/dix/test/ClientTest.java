@@ -26,7 +26,7 @@ class ClientTest {
             }
         }).start();
 
-        TimeUnit.SECONDS.sleep(10);
+        TimeUnit.SECONDS.sleep(10_000);
     }
 
     @Test

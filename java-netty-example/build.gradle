@@ -98,7 +98,7 @@ jib {
     container {
         appRoot = '/app'
         jvmFlags = ['-Djava.security.egd=file:/dev/./urandom', '-Xverify:none', '-noverify', '-XX:TieredStopAtLevel=1', '-Dfile.encoding=UTF-8']
-        mainClass = 'com.dix.fengine.netty.Main'
+        mainClass = 'com.dix.fengine.netty.Application'
         args = []
         format = 'Docker'
     }

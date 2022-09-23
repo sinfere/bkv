@@ -129,6 +129,30 @@ public class KV {
         return buffer.getFloat();
     }
 
+    public Short getShortValue() {
+        ByteBuffer buffer = ByteBuffer.wrap(this.value);
+        buffer.order(ByteOrder.BIG_ENDIAN);
+        return buffer.getShort();
+    }
+
+    public Integer getIntValue() {
+        ByteBuffer buffer = ByteBuffer.wrap(this.value);
+        buffer.order(ByteOrder.BIG_ENDIAN);
+        return buffer.getInt();
+    }
+
+    public Long getLongValue() {
+        ByteBuffer buffer = ByteBuffer.wrap(this.value);
+        buffer.order(ByteOrder.BIG_ENDIAN);
+        return buffer.getLong();
+    }
+
+    public Double getDoubleValue() {
+        ByteBuffer buffer = ByteBuffer.wrap(this.value);
+        buffer.order(ByteOrder.BIG_ENDIAN);
+        return buffer.getDouble();
+    }
+
     public Boolean getBooleanValue() {
         int v = getNumberValue().intValue();
         switch (v) {

@@ -5,6 +5,8 @@ import javax.annotation.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -117,6 +119,86 @@ public class BKV {
         }
 
         return kv.getFloatValue();
+    }
+
+    @Nullable
+    public Short getShortValue(long key) {
+        KV kv = get(key);
+        if (kv == null) {
+            return null;
+        }
+
+        return kv.getShortValue();
+    }
+
+    @Nullable
+    public Short getShortValue(String key) {
+        KV kv = get(key);
+        if (kv == null) {
+            return null;
+        }
+
+        return kv.getShortValue();
+    }
+
+    @Nullable
+    public Integer getIntValue(long key) {
+        KV kv = get(key);
+        if (kv == null) {
+            return null;
+        }
+
+        return kv.getIntValue();
+    }
+
+    @Nullable
+    public Integer getIntValue(String key) {
+        KV kv = get(key);
+        if (kv == null) {
+            return null;
+        }
+
+        return kv.getIntValue();
+    }
+
+    @Nullable
+    public Long getLongValue(long key) {
+        KV kv = get(key);
+        if (kv == null) {
+            return null;
+        }
+
+        return kv.getLongValue();
+    }
+
+    @Nullable
+    public Long getLongValue(String key) {
+        KV kv = get(key);
+        if (kv == null) {
+            return null;
+        }
+
+        return kv.getLongValue();
+    }
+
+    @Nullable
+    public Double getDoubleValue(long key) {
+        KV kv = get(key);
+        if (kv == null) {
+            return null;
+        }
+
+        return kv.getDoubleValue();
+    }
+
+    @Nullable
+    public Double getDoubleValue(String key) {
+        KV kv = get(key);
+        if (kv == null) {
+            return null;
+        }
+
+        return kv.getDoubleValue();
     }
 
     @Nullable

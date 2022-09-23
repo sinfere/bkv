@@ -44,6 +44,7 @@ public class BKVDecoder extends ByteToMessageDecoder {
 
         ByteBuf HEAD = in.alloc().buffer(2).writeBytes(Frame.HEAD);
         int headIndex = ByteBufUtil.indexOf(HEAD, in);
+        HEAD.release();
         if (headIndex < 0) {
             in.discardReadBytes();
 
@@ -71,7 +72,7 @@ public class BKVDecoder extends ByteToMessageDecoder {
         }
 
         // read head 2 bytes
-        in.readBytes(2);
+        in.readBytes(2).release();
 
         // read len 2 bytes
         int length = in.readShort();
@@ -102,10 +103,13 @@ public class BKVDecoder extends ByteToMessageDecoder {
 
         ByteBuf checkSumBuf = in.alloc().buffer(2 + length);
         checkSumBuf.writeShort(length);
-        checkSumBuf.writeBytes(payload.copy());
+        ByteBuf payloadCopy = payload.copy();
+        checkSumBuf.writeBytes(payloadCopy);
+        payloadCopy.release();
 
         byte checksum = in.readByte();
         byte calculatedChecksum = Frame.calculateChecksum(checkSumBuf);
+        checkSumBuf.release();
         if (calculatedChecksum != checksum) {
             // invalid frame, move to next decode
             in.resetReaderIndex();
@@ -117,11 +121,14 @@ public class BKVDecoder extends ByteToMessageDecoder {
                 logger.debug("{}: quit, checksum not equal, checksum={}, calculatedChecksum={}, move to next decode", logPrefix, checksum, calculatedChecksum);
             }
 
+            payload.release();
+
             return;
         }
 
         byte[] bkvBytes = new byte[length];
         payload.readBytes(bkvBytes);
+        payload.release();
         UnpackBKVResult unpackBKVResult = BKV.unpack(bkvBytes);
         BKV bkv = unpackBKVResult.getBKV();
         if (bkv != null) {

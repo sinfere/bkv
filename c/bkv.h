@@ -25,7 +25,7 @@
 #define BKV_RESULT_CODE_KV_INVALID (-7)
 
 
-static const int bkv_endian_i = 1;
+extern const int bkv_endian_i;
 #define is_big_endian() ( (*(char*)&bkv_endian_i) == 0 )
 
 

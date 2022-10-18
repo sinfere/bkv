@@ -1,6 +1,6 @@
 #include "bkv.h"
 
-
+const int bkv_endian_i = 1;
 
 void bkv_reverse(uint8_t* bs, size_t size) {
     int i, j;

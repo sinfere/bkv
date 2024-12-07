@@ -4,6 +4,8 @@ import com.dix.codec.bkv.exception.InvalidBufferException;
 import com.dix.codec.bkv.exception.InvalidLengthException;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
 public class CodecUtil {
@@ -40,14 +42,17 @@ public class CodecUtil {
             return new byte[]{ 0 };
         }
 
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int index = 0;
+        byte[] buffer = new byte[8];
         while (n != 0) {
             byte v = (byte) (n & 0xFF);
-            buffer.write(v);
+            buffer[index++] = v;
             n = n >>> 8; // unsigned shift, use zero as filter
         }
 
-        byte[] buf = buffer.toByteArray();
+        byte[] buf = new byte[index];
+        System.arraycopy(buffer, 0, buf, 0, index);
+
         reverse(buf);
 
         return buf;
@@ -72,15 +77,18 @@ public class CodecUtil {
             throw new InvalidLengthException();
         }
 
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int index = 0;
+        byte[] buffer = new byte[4];
         while (n != 0) {
             byte v = (byte) (n & 0x7F);
             v |= (byte) 0x80;
-            buffer.write(v);
+            buffer[index++] = v;
             n = n >>> 7; // unsigned shift, use zero as filter
         }
 
-        byte[] buf = buffer.toByteArray();
+        byte[] buf = new byte[index];
+        System.arraycopy(buffer, 0, buf, 0, index);
+
         reverse(buf);
 
         int lastByteIndex = buf.length - 1;
@@ -118,4 +126,25 @@ public class CodecUtil {
 
         return new DecodeLengthResult(length, remainingBuffer);
     }
+
+    public static byte[] encodeFloat(float v) {
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.order(ByteOrder.BIG_ENDIAN);
+        buffer.putFloat(0, v);
+        return buffer.array();
+    }
+
+    public static byte[] encodeDouble(double v) {
+        ByteBuffer buffer = ByteBuffer.allocate(4);
+        buffer.order(ByteOrder.BIG_ENDIAN);
+        buffer.putDouble(0, v);
+        return buffer.array();
+    }
+
+    public static byte[] encodeBoolean(boolean v) {
+        byte[] buffer = new byte[1];
+        buffer[0] = (byte) (v ? 1 : 0);
+        return buffer;
+    }
+
 }

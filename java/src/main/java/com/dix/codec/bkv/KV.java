@@ -95,6 +95,92 @@ public class KV {
         this.value = value;
     }
 
+    public KV(long key, int value) {
+        this.isStringKey = false;
+        this.key = CodecUtil.encodeNumber(key);
+        this.value = CodecUtil.encodeNumber(value);
+    }
+
+    public KV(long key, long value) {
+        this.isStringKey = false;
+        this.key = CodecUtil.encodeNumber(key);
+        this.value = CodecUtil.encodeNumber(value);
+    }
+
+    public KV(long key, String value) {
+        this.isStringKey = false;
+        this.key = CodecUtil.encodeNumber(key);
+        this.value = value.getBytes();
+    }
+
+    public KV(long key, byte[] value) {
+        this.isStringKey = false;
+        this.key = CodecUtil.encodeNumber(key);
+        this.value = value;
+    }
+
+    public KV(long key, float value) {
+        this.isStringKey = false;
+        this.key = CodecUtil.encodeNumber(key);
+        this.value = CodecUtil.encodeFloat(value);
+    }
+
+    public KV(long key, double value) {
+        this.isStringKey = false;
+        this.key = CodecUtil.encodeNumber(key);
+        this.value = CodecUtil.encodeDouble(value);
+    }
+
+    public KV(long key, boolean value) {
+        this.isStringKey = false;
+        this.key = CodecUtil.encodeNumber(key);
+        this.value = CodecUtil.encodeBoolean(value);
+    }
+
+    public KV(String key, int value) {
+        this.isStringKey = true;
+        this.key = key.getBytes();
+        this.value = CodecUtil.encodeNumber(value);
+    }
+
+    public KV(String key, long value) {
+        this.isStringKey = true;
+        this.key = key.getBytes();
+        this.value = CodecUtil.encodeNumber(value);
+    }
+
+    public KV(String key, String value) {
+        this.isStringKey = true;
+        this.key = key.getBytes();
+        this.value = value.getBytes();
+    }
+
+    public KV(String key, byte[] value) {
+        this.isStringKey = true;
+        this.key = key.getBytes();
+        this.value = value;
+    }
+
+    public KV(String key, float value) {
+        this.isStringKey = true;
+        this.key = key.getBytes();
+        this.value = CodecUtil.encodeFloat(value);
+    }
+
+    public KV(String key, double value) {
+        this.isStringKey = true;
+        this.key = key.getBytes();
+        this.value = CodecUtil.encodeDouble(value);
+    }
+
+    public KV(String key, boolean value) {
+        this.isStringKey = true;
+        this.key = key.getBytes();
+        this.value = CodecUtil.encodeBoolean(value);
+    }
+
+
+
     public Boolean isStringKey() {
         return this.isStringKey;
     }
@@ -167,7 +253,7 @@ public class KV {
     }
 
     public byte[] pack() throws IOException, PackKVFailException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream(64);
 
         int keyLength = this.key.length;
         if (keyLength > 128) {
@@ -178,7 +264,7 @@ public class KV {
 
         byte keyLengthByte = (byte) (keyLength & 0x7F);
         if (this.isStringKey) {
-            keyLengthByte |= 0x80;
+            keyLengthByte |= (byte) 0x80;
         }
 
         buffer.write(CodecUtil.encodeLength(totalLength));

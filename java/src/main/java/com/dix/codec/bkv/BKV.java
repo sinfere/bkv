@@ -25,6 +25,62 @@ public class BKV {
         this.add(kv);
     }
 
+    public void add(long key, int value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(long key, long value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(long key, String value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(long key, byte[] value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(long key, float value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(long key, double value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(long key, boolean value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(String key, int value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(String key, long value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(String key, String value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(String key, byte[] value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(String key, float value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(String key, double value) {
+        this.add(new KV(key, value));
+    }
+
+    public void add(String key, boolean value) {
+        this.add(new KV(key, value));
+    }
+
     public void add(BKV bkv) {
         this.kvs.addAll(bkv.getItems());
     }
@@ -275,7 +331,7 @@ public class BKV {
     }
 
     public byte[] pack() throws IOException {
-        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream(256);
         for (KV kv : kvs) {
             buffer.write(kv.pack());
         }

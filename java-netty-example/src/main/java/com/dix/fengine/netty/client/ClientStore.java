@@ -11,4 +11,6 @@ public interface ClientStore {
     void removeByClientId(String sessionId);
 
     String getSessionIdByClientId(String clientId);
+
+    String getClientIdBySessionId(String sessionId);
 }

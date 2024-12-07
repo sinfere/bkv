@@ -17,6 +17,7 @@ class KVTest {
         assertEquals("06826464303132", CodecUtil.bytesToHex(new KV("dd", "012".getBytes()).pack()));
         assertEquals("06826464303132", CodecUtil.bytesToHex(new KV("dd", "012").pack()));
         assertEquals("050163030405", CodecUtil.bytesToHex(new KV(99, new byte[]{ 0x03, 0x04, 0x05 }).pack()));
+        assertEquals("03013001", CodecUtil.bytesToHex(new KV(0x30, 1).pack()));
     }
 
     @Test

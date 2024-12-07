@@ -41,6 +41,11 @@ public class ClientRegistry {
         clientMap.put(sessionId, new NettyClient(context));
     }
 
+    public String getClientId(ChannelHandlerContext context) {
+        String sessionId = getSessionId(context);
+        return clientStore.getClientIdBySessionId(sessionId);
+    }
+
     public void remove(ChannelHandlerContext context) {
         String sessionId = getSessionId(context);
         clientMap.remove(sessionId);
